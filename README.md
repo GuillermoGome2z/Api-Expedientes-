@@ -65,12 +65,12 @@ cd <tu_repo>
 ```
 ---
 
-##Instalar dependencias
+## Instalar dependencias
 
 npm install
 ---
 
-##Variables de entorno
+## Variables de entorno
 Copia .env.example a .env y ajusta valores:
 
 PORT=3000
@@ -92,7 +92,7 @@ Levantar SQL Server con Docker
 docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=YourStrong!Passw0rd" \
   -p 1433:1433 --name sqlserver -d mcr.microsoft.com/mssql/server:2022-latest
 ---
-##Inicializar la base de datos
+## Inicializar la base de datos
 En SSMS o DBeaver:
 
 Ejecutar scripts/schema.sql.
@@ -107,11 +107,11 @@ npm run dev                   # desarrollo (ts-node-dev)
 npm run build && npm start    # producción (dist/)
 
 ---
-##📖 Endpoints principales
+## 📖 Endpoints principales
 🔐 Auth
 POST /api/auth/login → iniciar sesión y obtener JWT.
 
-##📂 Expedientes
+## 📂 Expedientes
 GET /api/expedientes?page=1&pageSize=10
 
 GET /api/expedientes/{id}
@@ -125,7 +125,7 @@ PATCH /api/expedientes/{id}/estado (rol: coordinador)
 PATCH /api/expedientes/{id}/activo (soft delete / activar)
 ---
 
-##🔎 Indicios
+## 🔎 Indicios
 GET /api/expedientes/{id}/indicios
 
 POST /api/expedientes/{id}/indicios (rol: técnico)
@@ -134,7 +134,7 @@ PUT /api/indicios/{id} (rol: técnico dueño)
 
 PATCH /api/indicios/{id}/activo
 
-##📑 Documentación
+## 📑 Documentación
 Swagger UI: http://localhost:3000/docs
 
 Health check: http://localhost:3000/api/health
@@ -142,7 +142,7 @@ Health check: http://localhost:3000/api/health
 La ruta raíz / redirige automáticamente a /docs.
 ---
 
-##🧪 Usuarios semilla
+## 🧪 Usuarios semilla
 Técnico
 
 email: tecnico@umg.edu
