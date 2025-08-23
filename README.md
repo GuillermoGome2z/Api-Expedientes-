@@ -50,3 +50,13 @@ backend/
 ├─ .env.example
 ├─ package.json
 └─ README.md
+
+
+---
+
+## ⚙️ Instalación y ejecución
+
+### 1) Clonar el repositorio
+```bash
+git clone https://github.com/<tu_usuario>/<tu_repo>.git
+cd <tu_repo>
