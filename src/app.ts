@@ -1,4 +1,3 @@
-// src/app.ts
 import express from "express";
 import cors from "cors";
 import routes from "./routes";
@@ -8,9 +7,9 @@ const app = express();
 
 app.use(express.json());
 
-// Permitir a tu frontend (ajusta el origin a tu URL de frontend)
+
 app.use(cors({
-  origin: ["http://localhost:5173", "http://localhost:3001", "http://localhost:3000"], // Vite/CRA/etc
+  origin: ["http://localhost:5173", "http://localhost:3001", "http://localhost:3000"], 
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   credentials: true,
 }));
