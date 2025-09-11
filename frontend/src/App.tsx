@@ -1,26 +1,33 @@
-import { useEffect, useState } from "react";
-import { api } from "./api/client";
+import { Routes, Route, Navigate, Link } from "react-router-dom";
+import { useAuth } from "./auth/AuthContext";
+import Login from "./pages/Login";
+import type { ReactNode } from "react"; 
 
-type HealthResponse = { ok: boolean };
+function Private({ children }: { children: ReactNode }) { // 👈 usa ReactNode
+  const { token } = useAuth();
+  return token ? <>{children}</> : <Navigate to="/login" replace />;
+}
 
-export default function App() {
-  const [msg, setMsg] = useState("Cargando...");
+function Home(){ return <h1 style={{textAlign:"center", marginTop:40}}>Inicio</h1>; }
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const { data } = await api.get<HealthResponse>("/health");
-        setMsg(data.ok ? "Backend conectado ✅" : "Backend falló");
-      } catch (e) {
-        setMsg("Error al conectar con la API");
-        console.error(e);
-      }
-    })();
-  }, []);
-
+export default function App(){
+  const { token, user, logout } = useAuth();
   return (
-    <main style={{ display:"grid", placeItems:"center", height:"100vh", fontFamily:"system-ui" }}>
-      <h1>{msg}</h1>
-    </main>
+    <>
+      <nav style={{display:"flex", gap:12, padding:8, borderBottom:"1px solid #ddd"}}>
+        <Link to="/">Inicio</Link>
+        {token && <Link to="/expedientes">Expedientes</Link>}
+        {user?.rol === "coordinador" && <Link to="/revisar">Revisar</Link>}
+        {!token ? <Link to="/login">Login</Link> : <button onClick={logout}>Salir</button>}
+      </nav>
+
+      <Routes>
+        <Route path="/" element={<Home/>}/>
+        <Route path="/login" element={<Login/>}/>
+        {/* placeholder de páginas protegidas (las crearemos después) */}
+        <Route path="/expedientes" element={<Private><div style={{padding:16}}>Listado de expedientes</div></Private>} />
+        <Route path="/revisar" element={<Private><div style={{padding:16}}>Revisar expedientes</div></Private>} />
+      </Routes>
+    </>
   );
 }
