@@ -472,7 +472,464 @@ Configuración de headers de seguridad:
 
 ---
 
-## 👨‍💻 Autor
+## � Contratos Canónicos (API Contracts)
+
+Esta sección documenta el formato estándar de requests y responses de la API.
+
+### Formato de Respuesta Estándar
+
+Todas las respuestas siguen el patrón:
+
+**Respuesta exitosa:**
+```json
+{
+  "success": true,
+  "data": { /* ... payload ... */ }
+}
+```
+
+**Respuesta con error:**
+```json
+{
+  "success": false,
+  "error": "Mensaje de error descriptivo",
+  "details": "Información adicional (opcional)"
+}
+```
+
+### Paginación
+
+Todas las listas paginadas retornan:
+
+```json
+{
+  "success": true,
+  "data": {
+    "page": 1,
+    "pageSize": 10,
+    "total": 45,
+    "data": [/* array de items */]
+  }
+}
+```
+
+**Query params (soportan alias en español):**
+- `page` o `pagina`: número de página (default: 1)
+- `pageSize` o `tamanoPagina`: items por página (default: 10)
+
+### Módulo: Autenticación
+
+#### POST /api/auth/login
+
+**Request:**
+```json
+{
+  "username": "tecnico1",
+  "password": "password123"
+}
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "token": "eyJhbGc...",
+    "user": {
+      "id": 1,
+      "username": "tecnico1",
+      "rol": "tecnico"
+    }
+  }
+}
+```
+
+**Errores comunes:**
+- `400`: Faltan username o password
+- `401`: Credenciales inválidas
+
+**Rate Limit:** 5 req / 15 minutos
+
+---
+
+### Módulo: Expedientes
+
+#### GET /api/expedientes
+
+**Query params:**
+- `page` / `pagina` (número, default: 1)
+- `pageSize` / `tamanoPagina` (número, default: 10)
+- `q` (string): Búsqueda por texto
+- `estado` (string): "pendiente", "aprobado", "rechazado"
+- `tecnicoId` (número): Filtrar por técnico
+- `fechaInicio` (ISO date): Desde fecha
+- `fechaFin` (ISO date): Hasta fecha
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "page": 1,
+    "pageSize": 10,
+    "total": 5,
+    "data": [
+      {
+        "id": 1,
+        "codigo": "EXP-2025-001",
+        "titulo": "Título del expediente",
+        "descripcion": "Descripción completa",
+        "estado": "pendiente",
+        "activo": 1,
+        "tecnico_id": 1,
+        "aprobador_id": null,
+        "justificacion_rechazo": null,
+        "fecha_creacion": "2025-01-15T10:30:00Z",
+        "fecha_actualizacion": "2025-01-15T10:30:00Z",
+        "modificado_por": 1
+      }
+    ]
+  }
+}
+```
+
+**Errores comunes:**
+- `401`: Sin token o token inválido
+
+**RBAC:** Técnicos ven solo sus expedientes, coordinadores ven todos
+
+---
+
+#### GET /api/expedientes/:id
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "codigo": "EXP-2025-001",
+    "titulo": "Título",
+    "descripcion": "Descripción",
+    "estado": "pendiente",
+    "activo": 1,
+    "tecnico_id": 1,
+    "aprobador_id": null,
+    "justificacion_rechazo": null,
+    "fecha_creacion": "2025-01-15T10:30:00Z",
+    "fecha_actualizacion": "2025-01-15T10:30:00Z",
+    "modificado_por": 1
+  }
+}
+```
+
+**Errores comunes:**
+- `404`: Expediente no existe
+
+---
+
+#### POST /api/expedientes
+
+**Requiere:** Rol técnico
+
+**Request:**
+```json
+{
+  "codigo": "EXP-2025-001",
+  "titulo": "Título (opcional)",
+  "descripcion": "Descripción del expediente"
+}
+```
+
+**Response (201):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 5
+  }
+}
+```
+
+**Errores comunes:**
+- `400`: Faltan campos obligatorios (codigo, descripcion)
+- `401`: Sin autenticación
+- `403`: No tienes rol técnico
+
+---
+
+#### PUT /api/expedientes/:id
+
+**Requiere:** Técnico (solo dueño) o Coordinador
+
+**Request:**
+```json
+{
+  "titulo": "Nuevo título",
+  "descripcion": "Nueva descripción"
+}
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "ok": true
+  }
+}
+```
+
+**Errores comunes:**
+- `403`: No eres el dueño del expediente
+- `404`: Expediente no encontrado
+
+---
+
+#### PATCH /api/expedientes/:id/estado
+
+**Requiere:** Rol coordinador
+
+**Request:**
+```json
+{
+  "estado": "rechazado",
+  "justificacion": "Requiere más detalles" // OBLIGATORIO si estado="rechazado"
+}
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "ok": true
+  }
+}
+```
+
+**Errores comunes:**
+- `400`: Estado inválido o falta justificación al rechazar
+- `403`: No tienes rol coordinador
+
+---
+
+#### GET /api/expedientes/export
+
+**Requiere:** Autenticación
+
+**Query params:** Mismos filtros que el GET de listado
+
+**Response (200):**
+- **Content-Type:** `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
+- **Content-Disposition:** `attachment; filename="expedientes_2025-01-15.xlsx"`
+- **Body:** Archivo XLSX binario
+
+**Rate Limit:** 10 req / minuto
+
+---
+
+### Módulo: Indicios
+
+#### GET /api/expedientes/:id/indicios
+
+**Query params:**
+- `page` / `pagina` (default: 1)
+- `pageSize` / `tamanoPagina` (default: 10)
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "page": 1,
+    "pageSize": 10,
+    "total": 3,
+    "data": [
+      {
+        "id": 1,
+        "expediente_id": 1,
+        "descripcion": "Descripción del indicio",
+        "peso": 15.5,
+        "color": "rojo",
+        "tamano": "pequeño",
+        "activo": 1,
+        "fecha_creacion": "2025-01-15T10:30:00Z",
+        "fecha_actualizacion": "2025-01-15T10:30:00Z",
+        "modificado_por": 1
+      }
+    ]
+  }
+}
+```
+
+---
+
+#### POST /api/expedientes/:id/indicios
+
+**Requiere:** Técnico (solo dueño) o Coordinador
+
+**Request:**
+```json
+{
+  "descripcion": "Descripción del indicio",
+  "peso": 15.5,        // opcional
+  "color": "rojo",     // opcional
+  "tamano": "pequeño"  // opcional
+}
+```
+
+**Response (201):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 8
+  }
+}
+```
+
+**Errores comunes:**
+- `403`: No eres el dueño del expediente
+- `404`: Expediente no encontrado
+
+---
+
+### Módulo: Usuarios (Admin)
+
+**⚠️ Requiere:** Rol coordinador (admin) para todos los endpoints
+
+#### POST /api/usuarios
+
+**Request:**
+```json
+{
+  "username": "nuevo_tecnico",
+  "password": "pass123456",
+  "rol": "tecnico"
+}
+```
+
+**Validaciones:**
+- `username`: mínimo 3 caracteres
+- `password`: mínimo 6 caracteres
+- `rol`: "tecnico" o "coordinador"
+
+**Response (201):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 4,
+    "username": "nuevo_tecnico",
+    "rol": "tecnico"
+  }
+}
+```
+
+**Errores comunes:**
+- `400`: Validación fallida (username o password muy cortos)
+- `403`: No tienes rol coordinador
+
+---
+
+#### GET /api/usuarios
+
+**Query params:**
+- `page` / `pagina` (default: 1)
+- `pageSize` / `tamanoPagina` (default: 10)
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "page": 1,
+    "pageSize": 10,
+    "total": 3,
+    "data": [
+      {
+        "id": 1,
+        "username": "tecnico1",
+        "rol": "tecnico",
+        "activo": 1,
+        "fecha_creacion": "2025-01-01T00:00:00Z"
+      }
+    ]
+  }
+}
+```
+
+---
+
+#### PATCH /api/usuarios/:id/password
+
+**Request:**
+```json
+{
+  "passwordNueva": "nuevapass123"
+}
+```
+
+**Validaciones:**
+- `passwordNueva`: mínimo 6 caracteres
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "ok": true
+  }
+}
+```
+
+**Errores comunes:**
+- `400`: Password muy corto
+- `404`: Usuario no encontrado
+
+---
+
+### Rate Limit Headers
+
+Todas las respuestas incluyen headers de rate limiting cuando aplica:
+
+```
+RateLimit-Limit: 100
+RateLimit-Remaining: 95
+RateLimit-Reset: 1704081600
+```
+
+---
+
+### Testing E2E
+
+El proyecto incluye tests E2E con **Jest + Supertest**.
+
+**Ejecutar tests:**
+```bash
+npm run test:e2e
+```
+
+**Ejecutar con coverage:**
+```bash
+npm run test:coverage
+```
+
+**⚠️ Nota:** Los tests requieren que la base de datos esté poblada con los datos de `seed.sql` y que los usuarios tengan contraseñas correctamente hasheadas con bcrypt.
+
+**Cobertura de tests:**
+- ✅ Autenticación (login válido/inválido)
+- ✅ Paginación con alias en español
+- ✅ RBAC (403 cuando no tienes permisos)
+- ✅ Validaciones (username≥3, password≥6)
+- ✅ Ownership (técnico solo modifica sus expedientes)
+- ✅ Exportaciones con Content-Disposition y fecha
+- ✅ Rate limiting (429 después de exceder límites)
+
+---
+
+## �👨‍💻 Autor
 
 **Guillermo Gómez**
 - GitHub: [@GuillermoGome2z](https://github.com/GuillermoGome2z)
