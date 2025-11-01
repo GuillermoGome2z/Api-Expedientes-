@@ -7,13 +7,13 @@ Start-Sleep -Seconds 10
 
 # Ejecutar schema.sql
 Write-Host "📋 Creando esquema de base de datos..." -ForegroundColor Cyan
-$schemaResult = docker exec expedientes-sqlserver /opt/mssql-tools18/bin/sqlcmd `
+docker exec expedientes-sqlserver /opt/mssql-tools18/bin/sqlcmd `
   -S localhost `
   -U sa `
   -P "YourStrong!Passw0rd" `
   -C `
   -d master `
-  -i /scripts/schema.sql
+  -i /scripts/schema.sql | Out-Null
 
 if ($LASTEXITCODE -eq 0) {
   Write-Host "✅ Esquema creado exitosamente" -ForegroundColor Green
@@ -24,13 +24,13 @@ if ($LASTEXITCODE -eq 0) {
 
 # Ejecutar seed.sql
 Write-Host "🌱 Insertando datos de prueba..." -ForegroundColor Cyan
-$seedResult = docker exec expedientes-sqlserver /opt/mssql-tools18/bin/sqlcmd `
+docker exec expedientes-sqlserver /opt/mssql-tools18/bin/sqlcmd `
   -S localhost `
   -U sa `
   -P "YourStrong!Passw0rd" `
   -C `
   -d expedientes_db `
-  -i /scripts/seed.sql
+  -i /scripts/seed.sql | Out-Null
 
 if ($LASTEXITCODE -eq 0) {
   Write-Host "✅ Datos de prueba insertados exitosamente" -ForegroundColor Green
