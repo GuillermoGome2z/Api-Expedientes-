@@ -4,9 +4,9 @@ GO
 -- Usuarios (password: tecnico123 para todos)
 -- Hash generado con bcrypt rounds=10
 INSERT INTO Usuarios (username, password_hash, rol) VALUES
-('tecnico1', '$2b$10$7I2Iv2DnCn.1Pi1q60001upETiq.ryWofxGB9IcJoF4stYLWZRWaO', 'tecnico'),
-('tecnico2', '$2b$10$7I2Iv2DnCn.1Pi1q60001upETiq.ryWofxGB9IcJoF4stYLWZRWaO', 'tecnico'),
-('coord1',   '$2b$10$7I2Iv2DnCn.1Pi1q60001upETiq.ryWofxGB9IcJoF4stYLWZRWaO', 'coordinador');
+('tecnico1', '$2b$10$Q1Kv1nUW81hQC.VvK/WLCecTdHtaKtHVrE.S.4IzAoHZ7/P19Zg3G', 'tecnico'),
+('tecnico2', '$2b$10$Q1Kv1nUW81hQC.VvK/WLCecTdHtaKtHVrE.S.4IzAoHZ7/P19Zg3G', 'tecnico'),
+('coord1',   '$2b$10$Q1Kv1nUW81hQC.VvK/WLCecTdHtaKtHVrE.S.4IzAoHZ7/P19Zg3G', 'coordinador');
 GO
 
 -- Expedientes: 5 expedientes con diferentes estados
