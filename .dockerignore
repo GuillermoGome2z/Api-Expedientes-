@@ -1,0 +1,58 @@
+# Dependencias
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Build
+dist/
+build/
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+
+# Testing
+coverage/
+.nyc_output/
+__tests__/
+
+# Environment
+.env
+.env.local
+.env.*.local
+*.env.backup
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Documentation
+*.md
+docs/
+MEJORAS_IMPLEMENTADAS.md
+README.md.bak
+
+# Otros
+token.txt
+test-usuarios-fix.ps1
+setup-db.ps1

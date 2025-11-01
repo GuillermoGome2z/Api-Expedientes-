@@ -9,7 +9,12 @@
     "db:hash": "ts-node src/scripts/hash-seed.ts",
     "test": "jest",
     "test:e2e": "jest __tests__/e2e",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "compose:up": "docker compose up --build",
+    "compose:down": "docker compose down",
+    "compose:logs": "docker compose logs -f",
+    "compose:restart": "docker compose restart",
+    "compose:clean": "docker compose down -v"
   },
   "keywords": [],
   "author": "",
