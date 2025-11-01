@@ -99,30 +99,47 @@ DB_NAME=expedientes_db
 BCRYPT_SALT_ROUNDS=10
 ```
 
-## Levantar SQL Server con Docker
+### 4️⃣ Levantar SQL Server con Docker
 
 ```bash
 docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=YourStrong!Passw0rd" \
   -p 1433:1433 --name sqlserver -d mcr.microsoft.com/mssql/server:2022-latest
 ```
 
-## Inicializar la base de datos
+### 5️⃣ Inicializar la base de datos
 
-**Opción 1 - SSMS o DBeaver:**
-1. Conectarse a SQL Server
-2. Ejecutar `src/scripts/schema.sql` (crea tablas con campos de auditoría)
-3. Ejecutar `src/scripts/seed.sql` (inserta usuarios y datos de prueba)
-4. Ejecutar todos los SP en `src/db/sp/`:
+**Opción 1 - Scripts automatizados (PowerShell - Recomendado):**
+```powershell
+# Crear base de datos y tablas
+Get-Content .\src\scripts\schema.sql | docker exec -i sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "YourStrong!Passw0rd" -C
+
+# Insertar datos de prueba
+Get-Content .\src\scripts\seed.sql | docker exec -i sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "YourStrong!Passw0rd" -C
+
+# Crear stored procedures
+Get-ChildItem -Path .\src\db\sp\usuarios\*.sql | ForEach-Object { 
+  Get-Content $_.FullName | docker exec -i sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "YourStrong!Passw0rd" -C -d expedientes_db 
+}
+
+Get-ChildItem -Path .\src\db\sp\expedientes\*.sql | ForEach-Object { 
+  Get-Content $_.FullName | docker exec -i sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "YourStrong!Passw0rd" -C -d expedientes_db 
+}
+
+Get-ChildItem -Path .\src\db\sp\indicios\*.sql | ForEach-Object { 
+  Get-Content $_.FullName | docker exec -i sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "YourStrong!Passw0rd" -C -d expedientes_db 
+}
+```
+
+**Opción 2 - SSMS o DBeaver (Manual):**
+1. Conectarse a SQL Server (localhost:1433, usuario: sa)
+2. Ejecutar `src/scripts/schema.sql` (crea base de datos y tablas con campos de auditoría)
+3. Ejecutar `src/scripts/seed.sql` (inserta 3 usuarios, 5 expedientes, 8 indicios)
+4. Ejecutar todos los stored procedures en orden:
    - `src/db/sp/usuarios/*.sql`
    - `src/db/sp/expedientes/*.sql`
    - `src/db/sp/indicios/*.sql`
 
-**Opción 2 - Comando único (PowerShell):**
-```powershell
-Get-Content src/scripts/schema.sql, src/scripts/seed.sql, src/db/sp/**/*.sql | sqlcmd -S localhost -U sa -P "YourStrong!Passw0rd"
-```
-
-### 5️⃣ Ejecutar la API
+### 6️⃣ Ejecutar la API
 
 **Desarrollo:**
 ```bash
@@ -136,6 +153,11 @@ npm start
 ```
 
 El servidor estará disponible en: http://localhost:3000
+
+**Verificar que todo funciona:**
+1. Abre http://localhost:3000/docs (debería mostrar Swagger UI)
+2. Prueba el endpoint de salud: http://localhost:3000/api/health
+3. Haz login con las credenciales de prueba (ver sección de Pruebas)
 
 ---
 ## 📖 Endpoints principales
@@ -192,16 +214,70 @@ Los datos de seed incluyen:
 
 **Indicios de prueba:** 8 indicios distribuidos entre expedientes
 
-## 🚀 Smoke Test
+---
 
+## 🧪 Cómo hacer pruebas
+
+### Opción 1: Swagger UI (Recomendado)
+1. Abre http://localhost:3000/docs en tu navegador
+2. Haz clic en **POST /api/auth/login**
+3. Click en "Try it out"
+4. Pega las credenciales:
+   ```json
+   {
+     "username": "tecnico1",
+     "password": "tecnico123"
+   }
+   ```
+5. Click en "Execute"
+6. Copia el `token` de la respuesta
+7. Haz clic en el botón "Authorize" (arriba a la derecha)
+8. Pega el token: `Bearer tu_token_aqui`
+9. Ahora puedes probar todos los endpoints autenticados
+
+### Opción 2: PowerShell con Invoke-WebRequest
+```powershell
+# 1. Login y obtener token
+$loginResponse = Invoke-RestMethod -Uri http://localhost:3000/api/auth/login `
+  -Method POST `
+  -ContentType "application/json" `
+  -Body '{"username":"tecnico1","password":"tecnico123"}'
+
+$token = $loginResponse.token
+Write-Host "Token obtenido: $token"
+
+# 2. Listar expedientes
+$headers = @{ Authorization = "Bearer $token" }
+$expedientes = Invoke-RestMethod -Uri http://localhost:3000/api/expedientes `
+  -Method GET -Headers $headers
+$expedientes | ConvertTo-Json
+
+# 3. Crear expediente
+$body = @{
+  codigo = "TEST-$(Get-Date -Format 'yyyyMMddHHmmss')"
+  titulo = "Expediente de prueba"
+  descripcion = "Creado desde PowerShell"
+} | ConvertTo-Json
+
+$nuevoExp = Invoke-RestMethod -Uri http://localhost:3000/api/expedientes `
+  -Method POST -Headers $headers -ContentType "application/json" -Body $body
+$nuevoExp | ConvertTo-Json
+
+# 4. Exportar a Excel (abre en navegador)
+Start-Process "http://localhost:3000/api/expedientes/export?estado=abierto"
+```
+
+### Opción 3: curl (Bash/Git Bash)
 ```bash
 # 1. Login
 TOKEN=$(curl -s -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"tecnico1","password":"tecnico123"}' | jq -r '.token')
 
-# 2. Listar expedientes
-curl -X GET http://localhost:3000/api/expedientes \
+echo "Token: $TOKEN"
+
+# 2. Listar expedientes con filtros
+curl -X GET "http://localhost:3000/api/expedientes?estado=abierto&page=1&pageSize=10" \
   -H "Authorization: Bearer $TOKEN"
 
 # 3. Crear expediente
@@ -210,9 +286,20 @@ curl -X POST http://localhost:3000/api/expedientes \
   -H "Authorization: Bearer $TOKEN" \
   -d '{"codigo":"TEST-001","titulo":"Test","descripcion":"Expediente de prueba"}'
 
-# 4. Ver documentación
-open http://localhost:3000/docs
+# 4. Aprobar expediente (requiere rol coordinador)
+curl -X PATCH http://localhost:3000/api/expedientes/1/estado \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN_COORDINADOR" \
+  -d '{"nuevoEstado":"aprobado"}'
 ```
+
+### Opción 4: Postman / Insomnia
+1. Importa la URL de Swagger: `http://localhost:3000/docs`
+2. O crea las peticiones manualmente siguiendo la documentación
+3. Configura el header `Authorization: Bearer <token>` después del login
+
+### Tests completos
+Ver `docs/tests-rapidos.md` para más de 30 ejemplos de pruebas con casos de éxito y error, validación de ownership, paginación, filtros y exportación.
 
 ---
 
