@@ -14,8 +14,9 @@ async function getExpedienteOwner(expedienteId: number): Promise<{ tecnico_id: n
 // GET /expedientes/:id/indicios
 export async function listarIndiciosPorExpediente(req: AuthRequest, res: Response) {
   const expediente_id = Number(req.params.id);
+  // Alias de paginación
   const page = Number(req.query.page ?? req.query.pagina ?? 1);
-  const pageSize = Number(req.query.pageSize ?? 10);
+  const pageSize = Number(req.query.pageSize ?? req.query.tamanoPagina ?? 10);
 
   const pool = await getPool();
   const r = await pool.request()
@@ -25,7 +26,6 @@ export async function listarIndiciosPorExpediente(req: AuthRequest, res: Respons
     .execute("sp_Indicios_ListarPorExpediente");
 
   res.json({
-    pagina: page,
     page,
     pageSize,
     total: r.recordset?.[0]?.total ?? 0,

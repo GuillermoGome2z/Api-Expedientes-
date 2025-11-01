@@ -102,8 +102,9 @@ export async function cambiarContrasena(req: AuthRequest, res: Response) {
 
 // GET /usuarios - Listar usuarios (solo coordinador)
 export async function listarUsuarios(req: Request, res: Response) {
+  // Alias de paginación
   const page = Number(req.query.page ?? req.query.pagina ?? 1);
-  const pageSize = Number(req.query.pageSize ?? 10);
+  const pageSize = Number(req.query.pageSize ?? req.query.tamanoPagina ?? 10);
 
   const pool = await getPool();
   const r = await pool.request()
@@ -112,7 +113,6 @@ export async function listarUsuarios(req: Request, res: Response) {
     .execute("sp_Usuarios_Listar");
 
   res.json({
-    pagina: page,
     page,
     pageSize,
     total: r.recordset?.[0]?.total ?? 0,

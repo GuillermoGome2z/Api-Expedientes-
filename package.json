@@ -24,7 +24,8 @@
     "mssql": "^11.0.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "zod": "^4.1.12"
   },
   "description": "",
   "devDependencies": {

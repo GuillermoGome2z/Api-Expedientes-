@@ -9,8 +9,9 @@ import { AuthRequest } from "../middlewares/auth.middleware";
    - Coordinadores (u otros): ven todos
 ========================= */
 export async function listarExpedientes(req: AuthRequest, res: Response) {
+  // Alias de paginación: page/pagina y pageSize/tamanoPagina
   const page = Number(req.query.page ?? req.query.pagina ?? 1);
-  const pageSize = Number(req.query.pageSize ?? 10);
+  const pageSize = Number(req.query.pageSize ?? req.query.tamanoPagina ?? 10);
   const q = String(req.query.q ?? "");
   const estado = req.query.estado ? String(req.query.estado) : null;
   const tecnicoId = req.query.tecnicoId ? Number(req.query.tecnicoId) : null;
@@ -35,12 +36,12 @@ export async function listarExpedientes(req: AuthRequest, res: Response) {
   }
 
   const r = await request.execute("sp_Expedientes_Listar");
+  
+  // Respuesta uniforme con alias
   res.json({
-    pagina: page,
     page,
     pageSize,
     total: r.recordset?.[0]?.total ?? 0,
-    estado: estado,
     data: r.recordset ?? []
   });
 }
