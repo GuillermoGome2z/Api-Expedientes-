@@ -14,7 +14,7 @@ const r = Router();
  *     summary: Crear un nuevo usuario (solo coordinador)
  *     tags: [Usuarios]
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -62,7 +62,7 @@ r.post(
  *     summary: Cambiar contraseña de un usuario
  *     tags: [Usuarios]
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -111,7 +111,7 @@ r.patch(
  *     summary: Listar usuarios (solo coordinador)
  *     tags: [Usuarios]
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: page

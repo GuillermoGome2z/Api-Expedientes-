@@ -40,11 +40,14 @@ export async function crearIndicio(req: AuthRequest, res: Response) {
     descripcion: string; peso?: number; color?: string; tamano?: string;
   };
 
-  // Validar ownership si es técnico
+  // RBAC: Validar ownership si es técnico
   if (req.user?.rol === "tecnico") {
     const owner = await getExpedienteOwner(expediente_id);
-    if (!owner || owner.tecnico_id !== req.user.id) {
-      return res.status(403).json({ error: "No es dueño del expediente" });
+    if (!owner) {
+      return res.status(404).json({ error: "Expediente no encontrado" });
+    }
+    if (owner.tecnico_id !== req.user.id) {
+      return res.status(403).json({ error: "No eres el dueño de este expediente" });
     }
   }
 
@@ -68,7 +71,7 @@ export async function actualizarIndicio(req: AuthRequest, res: Response) {
   };
   const modificado_por = req.user!.id;
 
-  // Validar ownership si es técnico: obtener expediente_id del indicio
+  // RBAC: Validar ownership si es técnico
   if (req.user?.rol === "tecnico") {
     const pool = await getPool();
     const indicioRes = await pool.request()
@@ -82,8 +85,11 @@ export async function actualizarIndicio(req: AuthRequest, res: Response) {
     const expediente_id = indicioRes.recordset[0].expediente_id;
     const owner = await getExpedienteOwner(expediente_id);
     
-    if (!owner || owner.tecnico_id !== req.user.id) {
-      return res.status(403).json({ error: "No es dueño del expediente" });
+    if (!owner) {
+      return res.status(404).json({ error: "Expediente no encontrado" });
+    }
+    if (owner.tecnico_id !== req.user.id) {
+      return res.status(403).json({ error: "No eres el dueño de este expediente" });
     }
   }
 
@@ -107,7 +113,7 @@ export async function toggleActivoIndicio(req: AuthRequest, res: Response) {
   const { activo } = req.body as { activo: boolean };
   const modificado_por = req.user!.id;
 
-  // Validar ownership si es técnico
+  // RBAC: Validar ownership si es técnico
   if (req.user?.rol === "tecnico") {
     const pool = await getPool();
     const indicioRes = await pool.request()
@@ -121,8 +127,11 @@ export async function toggleActivoIndicio(req: AuthRequest, res: Response) {
     const expediente_id = indicioRes.recordset[0].expediente_id;
     const owner = await getExpedienteOwner(expediente_id);
     
-    if (!owner || owner.tecnico_id !== req.user.id) {
-      return res.status(403).json({ error: "No es dueño del expediente" });
+    if (!owner) {
+      return res.status(404).json({ error: "Expediente no encontrado" });
+    }
+    if (owner.tecnico_id !== req.user.id) {
+      return res.status(403).json({ error: "No eres el dueño de este expediente" });
     }
   }
 

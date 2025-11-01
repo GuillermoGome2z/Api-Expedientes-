@@ -17,6 +17,8 @@ const r = Router();
  *   get:
  *     summary: Lista expedientes con paginación y filtros
  *     tags: [Expedientes]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: page
@@ -41,7 +43,7 @@ r.get("/", requireAuth, listarExpedientes);
  *     summary: Exportar expedientes a Excel
  *     tags: [Expedientes]
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: estado
@@ -82,7 +84,7 @@ r.get("/export", requireAuth, exportarExpedientes);
  *     summary: Exportar un expediente específico con sus indicios a Excel
  *     tags: [Expedientes]
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -115,6 +117,8 @@ r.get("/:id/export", requireAuth, exportarExpedienteIndividual);
  *   get:
  *     summary: Obtener un expediente por ID
  *     tags: [Expedientes]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -136,6 +140,8 @@ r.get("/:id", requireAuth, obtenerExpediente);
  *   post:
  *     summary: Crear un nuevo expediente (solo técnico)
  *     tags: [Expedientes]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -200,6 +206,8 @@ r.post(
  *   put:
  *     summary: Actualizar un expediente (solo técnico dueño)
  *     tags: [Expedientes]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -259,6 +267,8 @@ r.put(
  *   patch:
  *     summary: Cambiar estado de un expediente (solo coordinador)
  *     tags: [Expedientes]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -325,6 +335,8 @@ r.patch(
  *   patch:
  *     summary: Activar o desactivar un expediente (soft delete)
  *     tags: [Expedientes]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id

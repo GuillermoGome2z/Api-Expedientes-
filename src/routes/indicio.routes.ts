@@ -18,6 +18,8 @@ const r = Router();
  *   get:
  *     summary: Listar indicios de un expediente
  *     tags: [Indicios]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -37,6 +39,8 @@ r.get("/expedientes/:id/indicios", requireAuth, listarIndiciosPorExpediente);
  *   post:
  *     summary: Crear un nuevo indicio para un expediente (solo técnico)
  *     tags: [Indicios]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -110,6 +114,8 @@ r.post(
  *   put:
  *     summary: Actualizar un indicio (solo técnico dueño)
  *     tags: [Indicios]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -175,6 +181,8 @@ r.put(
  *   patch:
  *     summary: Activar o desactivar un indicio (soft delete)
  *     tags: [Indicios]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id

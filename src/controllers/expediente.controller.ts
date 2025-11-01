@@ -86,36 +86,66 @@ export async function crearExpediente(req: AuthRequest, res: Response) {
 
 /* =========================
    PUT /expedientes/:id  (solo dueño/técnico)
+   - Reforzado RBAC: Verifica ownership antes de actualizar
 ========================= */
 export async function actualizarExpediente(req: AuthRequest, res: Response) {
   const id = Number(req.params.id);
   const { titulo, descripcion } = req.body as { titulo: string; descripcion: string };
-  const tecnico_id = req.user!.id;
   const modificado_por = req.user!.id;
 
   const pool = await getPool();
+
+  // Verificar ownership si es técnico
+  if (req.user?.rol === "tecnico") {
+    const ownerCheck = await pool.request()
+      .input("expediente_id", sql.Int, id)
+      .execute("sp_Expedientes_ObtenerOwner");
+    
+    const owner = ownerCheck.recordset[0];
+    if (!owner || owner.tecnico_id !== req.user.id) {
+      return res.status(403).json({ error: "No eres el dueño de este expediente" });
+    }
+  }
+
+  // Actualizar expediente
   const r = await pool.request()
     .input("id", sql.Int, id)
     .input("titulo", sql.NVarChar(255), titulo)
     .input("descripcion", sql.NVarChar(sql.MAX), descripcion)
-    .input("tecnico_id", sql.Int, tecnico_id)
+    .input("tecnico_id", sql.Int, req.user!.id)
     .input("modificado_por", sql.Int, modificado_por)
     .execute("sp_Expedientes_Actualizar");
 
-  if (!r.recordset[0]?.updated) return res.status(403).json({ error: "Sin permisos o no existe" });
+  if (!r.recordset[0]?.updated) {
+    return res.status(404).json({ error: "Expediente no encontrado" });
+  }
+  
   res.json({ ok: true });
 }
 
 /* =========================
    PATCH /expedientes/:id/estado  (solo coordinador)
+   - Si estado='rechazado' => justificacion es OBLIGATORIA
 ========================= */
 export async function cambiarEstado(req: AuthRequest, res: Response) {
   const id = Number(req.params.id);
   const { estado, justificacion } = req.body as { estado: "aprobado"|"rechazado"; justificacion?: string };
   const aprobador_id = req.user!.id;
 
+  // Validar estado
   if (!["aprobado", "rechazado"].includes(estado)) {
     return res.status(400).json({ error: "estado inválido" });
+  }
+
+  // RBAC: Solo coordinador puede cambiar estado (ya verificado en route middleware)
+  
+  // Si es 'rechazado', exigir justificación no vacía
+  if (estado === "rechazado") {
+    if (!justificacion || justificacion.trim().length === 0) {
+      return res.status(400).json({ 
+        error: "La justificación es obligatoria cuando se rechaza un expediente" 
+      });
+    }
   }
 
   const pool = await getPool();
@@ -126,7 +156,10 @@ export async function cambiarEstado(req: AuthRequest, res: Response) {
     .input("justificacion", sql.NVarChar(sql.MAX), justificacion ?? null)
     .execute("sp_Expedientes_CambiarEstado");
 
-  if (!r.recordset[0]?.updated) return res.status(400).json({ error: "No se pudo cambiar estado" });
+  if (!r.recordset[0]?.updated) {
+    return res.status(400).json({ error: "No se pudo cambiar estado" });
+  }
+  
   res.json({ ok: true });
 }
 
