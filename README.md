@@ -12,6 +12,9 @@ API REST desarrollada en **TypeScript + Express** con persistencia en **SQL Serv
 - Autenticación con **JWT** (bcrypt para hash de contraseñas)
 - Control de acceso basado en roles (**RBAC**): Técnico y Coordinador
 - Validación de **ownership**: técnicos solo pueden modificar sus propios expedientes
+- **Rate limiting**: Login (5 intentos/15min), Export (10/minuto) para prevenir brute-force
+- **Helmet** con CSP conservador y HSTS en producción
+- CORS multi-origen con validación dinámica
 - Middleware global de manejo de errores con mensajes diferenciados por entorno
 - Validación de variables de entorno con **Zod** (type-safe en tiempo de ejecución)
 
@@ -32,6 +35,14 @@ API REST desarrollada en **TypeScript + Express** con persistencia en **SQL Serv
 - Documentación completa con **Swagger UI** en `/docs` (incluyendo `bearerAuth` scheme)
 - Scripts SQL completos (schema + seed + stored procedures)
 
+### 📊 Observabilidad
+- **Winston** logger con transports a `combined.log` y `error.log`
+- **Request ID** único por petición para trazabilidad
+- **Métricas Prometheus**: histogramas de latencia, contadores por ruta
+- Endpoint `/health` con verificación de DB (retorna 503 si falla)
+- Endpoint `/metrics` para scraping de Prometheus
+- Compresión HTTP para mejorar performance en respuestas grandes
+
 ---
 
 ## 🏗️ Tecnologías
@@ -42,6 +53,9 @@ API REST desarrollada en **TypeScript + Express** con persistencia en **SQL Serv
 - **Validación:** express-validator + Zod
 - **Documentación:** Swagger UI (swagger-jsdoc + swagger-ui-express)
 - **Exportación:** xlsx
+- **Seguridad:** Helmet, express-rate-limit, compression
+- **Logging:** Winston (structured logging)
+- **Métricas:** prom-client (Prometheus)
 
 ---
 
@@ -168,19 +182,24 @@ El servidor estará disponible en: **http://localhost:3000**
 **Verificar que todo funciona:**
 1. Abre http://localhost:3000/docs (debería mostrar Swagger UI)
 2. Prueba el endpoint de salud: http://localhost:3000/api/health
-3. Haz login con las credenciales de prueba (ver sección de Pruebas)
+3. Verifica métricas: http://localhost:3000/metrics
+4. Haz login con las credenciales de prueba (ver sección de Pruebas)
 
 ---
 
 ## 📖 Endpoints principales
 
 ### 🔐 Auth
-- `POST /api/auth/login` → Iniciar sesión y obtener JWT
+- `POST /api/auth/login` → Iniciar sesión y obtener JWT (rate limited: 5 intentos/15min)
 
 ### 👥 Usuarios
 - `POST /api/usuarios` → Crear usuario (solo coordinador)
 - `PATCH /api/usuarios/:id/password` → Cambiar contraseña
 - `GET /api/usuarios` → Listar usuarios con paginación (solo coordinador)
+
+### 🏥 Observabilidad
+- `GET /api/health` → Health check con estado de DB, uptime y memoria
+- `GET /metrics` → Métricas de Prometheus (latencia, contadores, recursos)
 
 ### 📂 Expedientes
 - `GET /api/expedientes?page=1&pageSize=10&estado=abierto&fechaInicio=2025-01-01&fechaFin=2025-12-31&tecnicoId=1` → Listar con filtros avanzados
@@ -189,7 +208,7 @@ El servidor estará disponible en: **http://localhost:3000**
 - `PUT /api/expedientes/:id` → Actualizar expediente (solo técnico dueño)
 - `PATCH /api/expedientes/:id/estado` → Cambiar estado: aprobado/rechazado (solo coordinador, requiere `justificacion` si rechazado)
 - `PATCH /api/expedientes/:id/activo` → Soft delete (técnico dueño o coordinador)
-- `GET /api/expedientes/export?estado=abierto&tecnicoId=1` → Exportar a Excel con filtros
+- `GET /api/expedientes/export?estado=abierto&tecnicoId=1` → Exportar a Excel con filtros (rate limited: 10 req/min)
 
 ### 🔍 Indicios
 - `GET /api/expedientes/:id/indicios?page=1&pageSize=10` → Listar indicios de un expediente con paginación
@@ -396,10 +415,60 @@ interface Request {
     username: string;
     rol: "tecnico" | "coordinador";
   };
+  requestId?: string; // UUID para trazabilidad
 }
 ```
 
 Esto proporciona **autocompletado** y **type-safety** en todos los controladores sin necesidad de castings.
+
+### Logging estructurado con Winston
+
+El archivo `src/config/logger.ts` configura Winston con:
+
+- **Transports**: `logs/combined.log` (todos) y `logs/error.log` (solo errores)
+- **Formato JSON** con timestamp para fácil parsing
+- **Console en desarrollo** con colores para mejor UX
+- **Request ID** en cada log para correlacionar peticiones
+
+Ejemplo de uso:
+```typescript
+import { logger } from "../config/logger";
+
+logger.info("Usuario autenticado", { requestId: req.requestId, userId: 123 });
+logger.error("Error de DB", { requestId: req.requestId, error: err.message });
+```
+
+### Métricas con Prometheus
+
+El archivo `src/config/metrics.ts` expone:
+
+- `http_requests_total`: contador por método, ruta y código de estado
+- `http_request_duration_seconds`: histograma de latencia
+- `db_errors_total`: contador de errores de base de datos
+- Métricas por defecto: uso de memoria, CPU, heap
+
+Accede a `/metrics` para que Prometheus pueda scrapear.
+
+### Rate Limiting
+
+Protección contra abuso en endpoints críticos:
+
+| Endpoint | Límite | Ventana | Razón |
+|----------|--------|---------|-------|
+| `/api/auth/login` | 5 req | 15 min | Prevenir brute-force |
+| `/api/expedientes/export` | 10 req | 1 min | Evitar sobrecarga de recursos |
+| Toda la API | 100 req | 1 min | Protección general |
+
+Headers de respuesta: `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset`
+
+### Seguridad con Helmet
+
+Configuración de headers de seguridad:
+
+- **CSP**: `default-src 'self'` con excepciones para Swagger UI
+- **HSTS**: Solo en producción (`max-age=31536000`)
+- **X-Frame-Options**: `DENY`
+- **X-Content-Type-Options**: `nosniff`
 
 ---
 
