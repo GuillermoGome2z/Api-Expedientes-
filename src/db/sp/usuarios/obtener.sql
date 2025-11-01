@@ -8,6 +8,6 @@ AS
 BEGIN
   SELECT id, username, rol, activo, password_hash
   FROM Usuarios
-  WHERE id=@id AND activo=1;
+  WHERE id=@id;
 END;
 GO
