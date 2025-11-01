@@ -202,3 +202,107 @@ export async function exportarExpedientes(req: AuthRequest, res: Response) {
   res.setHeader("Content-Disposition", "attachment; filename=expedientes.xlsx");
   res.send(buffer);
 }
+
+/* =========================
+   GET /expedientes/:id/export  (exportar un expediente individual con sus indicios)
+========================= */
+export async function exportarExpedienteIndividual(req: AuthRequest, res: Response) {
+  try {
+    const id = Number(req.params.id);
+    
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "ID inválido" });
+    }
+
+    const pool = await getPool();
+    
+    // Obtener expediente por ID
+    const expedienteResult = await pool.request()
+      .input("id", sql.Int, id)
+      .execute("sp_Expedientes_Obtener");
+    
+    if (!expedienteResult.recordset || expedienteResult.recordset.length === 0) {
+      return res.status(404).json({ error: "Expediente no encontrado" });
+    }
+
+    const expediente = expedienteResult.recordset[0];
+
+    // Obtener indicios relacionados
+    const indiciosResult = await pool.request()
+      .input("expediente_id", sql.Int, id)
+      .execute("sp_Indicios_ListarPorExpediente");
+    
+    const indicios = indiciosResult.recordset ?? [];
+
+    // Crear workbook
+    const wb = XLSX.utils.book_new();
+
+    // ===== HOJA 1: Información del Expediente =====
+    const expedienteData = [
+      { Campo: "ID", Valor: expediente.id },
+      { Campo: "Código", Valor: expediente.codigo },
+      { Campo: "Título", Valor: expediente.titulo },
+      { Campo: "Estado", Valor: expediente.estado },
+      { Campo: "Técnico Responsable", Valor: expediente.tecnico_username || "N/A" },
+      { Campo: "Aprobador", Valor: expediente.aprobador_username || "N/A" },
+      { Campo: "Fecha de Creación", Valor: expediente.fecha_creacion ? new Date(expediente.fecha_creacion).toLocaleDateString() : "N/A" },
+      { Campo: "Fecha de Estado", Valor: expediente.fecha_estado ? new Date(expediente.fecha_estado).toLocaleDateString() : "N/A" },
+      { Campo: "Descripción", Valor: expediente.descripcion || "N/A" },
+      { Campo: "Ubicación", Valor: expediente.ubicacion || "N/A" },
+      { Campo: "Justificación", Valor: expediente.justificacion || "N/A" },
+      { Campo: "Activo", Valor: expediente.activo ? "Sí" : "No" }
+    ];
+
+    const ws1 = XLSX.utils.json_to_sheet(expedienteData);
+    
+    // Ajustar anchos de columna
+    ws1["!cols"] = [
+      { wch: 25 }, // Campo
+      { wch: 50 }  // Valor
+    ];
+
+    XLSX.utils.book_append_sheet(wb, ws1, "Información del Expediente");
+
+    // ===== HOJA 2: Indicios Relacionados =====
+    const indiciosData = indicios.map((indicio: any) => ({
+      ID: indicio.id,
+      Descripción: indicio.descripcion || "N/A",
+      Peso_kg: indicio.peso !== null ? indicio.peso : "N/A",
+      Color: indicio.color || "N/A",
+      Tamaño: indicio.tamano || "N/A",
+      Estado: indicio.activo ? "Activo" : "Inactivo",
+      Fecha_Creación: indicio.fecha_creacion ? new Date(indicio.fecha_creacion).toLocaleDateString() : "N/A"
+    }));
+
+    const ws2 = XLSX.utils.json_to_sheet(indiciosData);
+    
+    // Ajustar anchos de columna
+    ws2["!cols"] = [
+      { wch: 10 }, // ID
+      { wch: 40 }, // Descripción
+      { wch: 12 }, // Peso
+      { wch: 15 }, // Color
+      { wch: 15 }, // Tamaño
+      { wch: 12 }, // Estado
+      { wch: 18 }  // Fecha
+    ];
+
+    XLSX.utils.book_append_sheet(wb, ws2, "Indicios");
+
+    // Generar buffer
+    const buffer = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
+
+    // Generar nombre de archivo con fecha actual
+    const fechaActual = new Date().toISOString().split('T')[0];
+    const nombreArchivo = `expediente_${id}_${fechaActual}.xlsx`;
+
+    // Enviar archivo
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader("Content-Disposition", `attachment; filename=${nombreArchivo}`);
+    res.send(buffer);
+
+  } catch (error) {
+    console.error("Error al exportar expediente individual:", error);
+    res.status(500).json({ error: "Error al exportar expediente" });
+  }
+}

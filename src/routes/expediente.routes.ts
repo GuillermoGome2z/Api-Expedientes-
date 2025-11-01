@@ -5,7 +5,8 @@ import { requireRole } from "../middlewares/role.middleware";
 import { validate } from "../middlewares/validate.middleware";
 import {
   listarExpedientes, crearExpediente, obtenerExpediente,
-  actualizarExpediente, cambiarEstado, toggleActivoExpediente, exportarExpedientes
+  actualizarExpediente, cambiarEstado, toggleActivoExpediente, 
+  exportarExpedientes, exportarExpedienteIndividual
 } from "../controllers/expediente.controller";
 
 const r = Router();
@@ -73,6 +74,40 @@ r.get("/", requireAuth, listarExpedientes);
  *               format: binary
  */
 r.get("/export", requireAuth, exportarExpedientes);
+
+/**
+ * @openapi
+ * /expedientes/{id}/export:
+ *   get:
+ *     summary: Exportar un expediente específico con sus indicios a Excel
+ *     tags: [Expedientes]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del expediente a exportar
+ *     responses:
+ *       200:
+ *         description: Archivo Excel generado con el expediente y sus indicios
+ *         content:
+ *           application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       404:
+ *         description: Expediente no encontrado
+ *       401:
+ *         description: No autenticado
+ *       400:
+ *         description: ID inválido
+ *       500:
+ *         description: Error al exportar expediente
+ */
+r.get("/:id/export", requireAuth, exportarExpedienteIndividual);
 
 /**
  * @openapi
