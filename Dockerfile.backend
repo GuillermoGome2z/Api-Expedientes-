@@ -13,11 +13,8 @@ WORKDIR /app
 # Copiar archivos de dependencias
 COPY package*.json ./
 
-# Instalar dependencias
-RUN npm ci --only=production && npm cache clean --force
-
-# Instalar dependencias de desarrollo para ts-node-dev
-RUN npm install --save-dev ts-node-dev typescript @types/node
+# Instalar dependencias (usar npm install porque no hay package-lock.json)
+RUN npm install --production=false && npm cache clean --force
 
 # Copiar código fuente y configuración
 COPY tsconfig.json ./
