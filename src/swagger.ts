@@ -47,6 +47,134 @@ export function mountSwagger(app: Express): void {
             schema: { type: "integer", minimum: 1, maximum: 100, default: 10 },
           },
         },
+        schemas: {
+          SuccessResponse: {
+            type: "object",
+            properties: {
+              success: {
+                type: "boolean",
+                example: true,
+              },
+              data: {
+                type: "object",
+                description: "Payload de la respuesta exitosa",
+              },
+            },
+          },
+          ErrorResponse: {
+            type: "object",
+            properties: {
+              success: {
+                type: "boolean",
+                example: false,
+              },
+              error: {
+                type: "string",
+                example: "Mensaje de error descriptivo",
+              },
+              details: {
+                type: "string",
+                description: "Información adicional sobre el error (opcional)",
+              },
+            },
+          },
+          PaginatedResponse: {
+            type: "object",
+            properties: {
+              success: {
+                type: "boolean",
+                example: true,
+              },
+              data: {
+                type: "object",
+                properties: {
+                  page: {
+                    type: "integer",
+                    example: 1,
+                  },
+                  pageSize: {
+                    type: "integer",
+                    example: 10,
+                  },
+                  total: {
+                    type: "integer",
+                    example: 45,
+                  },
+                  data: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          UnauthorizedError: {
+            description: "Token no proporcionado o inválido",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/ErrorResponse",
+                },
+                example: {
+                  success: false,
+                  error: "Token requerido",
+                },
+              },
+            },
+          },
+          ForbiddenError: {
+            description: "No tienes permisos para acceder a este recurso",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/ErrorResponse",
+                },
+                example: {
+                  success: false,
+                  error: "No tienes permiso para realizar esta acción",
+                },
+              },
+            },
+          },
+          RateLimitExceeded: {
+            description: "Has excedido el límite de peticiones permitidas",
+            headers: {
+              "RateLimit-Limit": {
+                schema: {
+                  type: "integer",
+                },
+                description: "Número máximo de peticiones permitidas",
+              },
+              "RateLimit-Remaining": {
+                schema: {
+                  type: "integer",
+                },
+                description: "Número de peticiones restantes",
+              },
+              "RateLimit-Reset": {
+                schema: {
+                  type: "integer",
+                },
+                description: "Timestamp (epoch) cuando se resetea el límite",
+              },
+            },
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/ErrorResponse",
+                },
+                example: {
+                  success: false,
+                  error: "Too many requests, please try again later.",
+                },
+              },
+            },
+          },
+        },
       },
       security: [
         {
