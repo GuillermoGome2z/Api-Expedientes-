@@ -119,8 +119,16 @@ export async function cambiarContrasena(req: AuthRequest, res: Response) {
     });
   }
 
-  // Validar contraseña actual (solo si el usuario cambia su propia contraseña)
-  if (req.user!.id === id) {
+  // Validar contraseña actual SOLO si el usuario cambia su propia contraseña
+  // Los coordinadores pueden cambiar contraseñas sin validar la actual
+  if (req.user!.id === id && req.user!.rol !== "coordinador") {
+    if (!passwordActual) {
+      return res.status(400).json({
+        success: false,
+        error: "La contraseña actual es requerida cuando cambias tu propia contraseña",
+      });
+    }
+    
     const ok = await bcrypt.compare(passwordActual, user.password_hash);
     if (!ok) {
       return res.status(401).json({
@@ -173,5 +181,29 @@ export async function listarUsuarios(req: Request, res: Response) {
       total: r.recordset?.[0]?.total ?? 0,
       data: r.recordset ?? [],
     },
+  });
+}
+
+// PATCH /usuarios/:id/activo - Activar/Desactivar usuario (solo coordinador)
+export async function toggleActivoUsuario(req: AuthRequest, res: Response) {
+  const id = Number(req.params.id);
+  const { activo } = req.body as { activo: boolean };
+
+  const pool = await getPool();
+  const r = await pool.request()
+    .input("id", sql.Int, id)
+    .input("activo", sql.Bit, activo ? 1 : 0)
+    .execute("sp_Usuarios_ActivarDesactivar");
+
+  if (!r.recordset[0]?.updated) {
+    return res.status(400).json({
+      success: false,
+      error: "No se pudo actualizar el estado del usuario",
+    });
+  }
+
+  res.json({
+    success: true,
+    data: { ok: true },
   });
 }

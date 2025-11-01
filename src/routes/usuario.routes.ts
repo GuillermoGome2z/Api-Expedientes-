@@ -3,7 +3,7 @@ import { body } from "express-validator";
 import { requireAuth } from "../middlewares/auth.middleware";
 import { requireRole } from "../middlewares/role.middleware";
 import { validate } from "../middlewares/validate.middleware";
-import { crearUsuario, cambiarContrasena, listarUsuarios } from "../controllers/usuario.controller";
+import { crearUsuario, cambiarContrasena, listarUsuarios, toggleActivoUsuario } from "../controllers/usuario.controller";
 
 const r = Router();
 
@@ -98,7 +98,7 @@ r.post(
 r.patch(
   "/:id/password",
   requireAuth,
-  body("passwordActual").isString().notEmpty().withMessage("La contraseña actual es requerida"),
+  body("passwordActual").optional().isString().withMessage("La contraseña actual debe ser string"),
   body("passwordNueva").isString().isLength({ min: 6 }).withMessage("La contraseña nueva debe tener al menos 6 caracteres"),
   validate,
   cambiarContrasena
@@ -122,5 +122,48 @@ r.patch(
  *         description: Solo coordinadores pueden listar usuarios
  */
 r.get("/", requireAuth, requireRole("coordinador"), listarUsuarios);
+
+/**
+ * @openapi
+ * /usuarios/{id}/activo:
+ *   patch:
+ *     summary: Activar/Desactivar usuario (solo coordinador)
+ *     tags: [Usuarios]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del usuario
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [activo]
+ *             properties:
+ *               activo:
+ *                 type: boolean
+ *                 example: false
+ *     responses:
+ *       200:
+ *         description: Estado del usuario actualizado
+ *       400:
+ *         description: No se pudo actualizar
+ *       403:
+ *         description: Solo coordinadores pueden modificar usuarios
+ */
+r.patch(
+  "/:id/activo",
+  requireAuth,
+  requireRole("coordinador"),
+  body("activo").isBoolean().withMessage("El campo activo debe ser booleano"),
+  validate,
+  toggleActivoUsuario
+);
 
 export default r;
