@@ -17,7 +17,7 @@ BEGIN
   
   DECLARE @total INT;
   
-  WITH F AS (
+  WITH FilteredExpedientes AS (
     SELECT e.*, u.username AS tecnico_username,
            ua.username AS aprobador_username
     FROM Expedientes e
@@ -31,10 +31,10 @@ BEGIN
       AND (@fechaInicio IS NULL OR e.fecha_creacion >= @fechaInicio)
       AND (@fechaFin IS NULL OR e.fecha_creacion <= @fechaFin)
   )
-  SELECT @total = COUNT(*) FROM F;
+  SELECT @total = COUNT(*) FROM FilteredExpedientes;
   
   SELECT *, @total AS total
-  FROM F
+  FROM FilteredExpedientes
   ORDER BY id DESC
   OFFSET (@page-1)*@pageSize ROWS FETCH NEXT @pageSize ROWS ONLY;
 END;
