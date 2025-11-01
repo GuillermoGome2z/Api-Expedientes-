@@ -3,6 +3,7 @@ import { body } from "express-validator";
 import { requireAuth } from "../middlewares/auth.middleware";
 import { requireRole } from "../middlewares/role.middleware";
 import { validate } from "../middlewares/validate.middleware";
+import { exportRateLimiter } from "../middlewares/rateLimiter.middleware";
 import {
   listarExpedientes, crearExpediente, obtenerExpediente,
   actualizarExpediente, cambiarEstado, toggleActivoExpediente, 
@@ -66,8 +67,10 @@ r.get("/", requireAuth, listarExpedientes);
  *             schema:
  *               type: string
  *               format: binary
+ *       429:
+ *         description: Demasiadas solicitudes de exportación (rate limit)
  */
-r.get("/export", requireAuth, exportarExpedientes);
+r.get("/export", requireAuth, exportRateLimiter, exportarExpedientes);
 
 /**
  * @openapi
@@ -100,8 +103,10 @@ r.get("/export", requireAuth, exportarExpedientes);
  *         description: ID inválido
  *       500:
  *         description: Error al exportar expediente
+ *       429:
+ *         description: Demasiadas solicitudes de exportación (rate limit)
  */
-r.get("/:id/export", requireAuth, exportarExpedienteIndividual);
+r.get("/:id/export", requireAuth, exportRateLimiter, exportarExpedienteIndividual);
 
 /**
  * @openapi

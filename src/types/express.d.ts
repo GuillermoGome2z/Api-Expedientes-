@@ -12,6 +12,8 @@ declare global {
         username: string;
         rol: "tecnico" | "coordinador";
       };
+      /** ID único de la petición para trazabilidad en logs */
+      requestId?: string;
     }
   }
 }

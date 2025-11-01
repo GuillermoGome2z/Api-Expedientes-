@@ -1,8 +1,13 @@
 import { Request, Response, NextFunction } from "express";
+import { logger } from "../config/logger";
+import { env } from "../config/env";
 
 /**
  * Middleware global de manejo de errores.
  * Debe registrarse al final de todos los middlewares en app.ts.
+ * 
+ * Loguea errores con Winston incluyendo requestId para trazabilidad.
+ * Retorna respuestas normalizadas con formato { success, error, details? }
  */
 export function errorHandler(
   err: any,
@@ -10,28 +15,40 @@ export function errorHandler(
   res: Response,
   next: NextFunction
 ) {
-  // Log del error (en producción usarías un logger como Winston)
-  console.error("❌ Error capturado:", {
+  // Log estructurado con Winston + requestId
+  logger.error("Error capturado en la aplicación", {
+    requestId: req.requestId,
     name: err.name,
     message: err.message,
-    stack: process.env.NODE_ENV === "development" ? err.stack : undefined,
+    stack: env.NODE_ENV === "development" ? err.stack : undefined,
     url: req.url,
     method: req.method,
+    ip: req.ip,
+    userAgent: req.get("user-agent"),
   });
 
-  // Error de autenticación
+  // Error de autenticación (JWT)
   if (err.name === "UnauthorizedError") {
-    return res.status(401).json({ error: "No autorizado" });
+    return res.status(401).json({
+      success: false,
+      error: "No autorizado",
+      details: env.NODE_ENV === "development" ? err.message : undefined,
+    });
   }
 
   // Usar statusCode si existe, sino 500
   const statusCode = err.statusCode || 500;
 
-  // En producción, mensaje genérico; en desarrollo, detallado
+  // Mensaje de error según entorno
   const message =
-    process.env.NODE_ENV === "production"
+    env.NODE_ENV === "production"
       ? "Error interno del servidor"
       : err.message || "Error desconocido";
 
-  return res.status(statusCode).json({ error: message });
+  // Respuesta normalizada
+  return res.status(statusCode).json({
+    success: false,
+    error: message,
+    details: env.NODE_ENV === "development" ? { stack: err.stack } : undefined,
+  });
 }

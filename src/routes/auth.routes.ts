@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { login } from "../controllers/auth.controller";
+import { loginRateLimiter } from "../middlewares/rateLimiter.middleware";
 
 const r = Router();
 
@@ -28,7 +29,9 @@ const r = Router();
  *         description: Token generado correctamente
  *       401:
  *         description: Credenciales inválidas
+ *       429:
+ *         description: Demasiados intentos de login (rate limit)
  */
-r.post("/login", login);
+r.post("/login", loginRateLimiter, login);
 
 export default r;
