@@ -12,11 +12,32 @@ export async function crearUsuario(req: Request, res: Response) {
   };
 
   if (!username || !password || !rol) {
-    return res.status(400).json({ error: "username, password y rol son requeridos" });
+    return res.status(400).json({
+      success: false,
+      error: "username, password y rol son requeridos",
+    });
+  }
+
+  // Validaciones mínimas
+  if (username.trim().length < 3) {
+    return res.status(400).json({
+      success: false,
+      error: "El username debe tener al menos 3 caracteres",
+    });
+  }
+
+  if (password.length < 6) {
+    return res.status(400).json({
+      success: false,
+      error: "La contraseña debe tener al menos 6 caracteres",
+    });
   }
 
   if (!["tecnico", "coordinador"].includes(rol)) {
-    return res.status(400).json({ error: "rol debe ser tecnico o coordinador" });
+    return res.status(400).json({
+      success: false,
+      error: "rol debe ser tecnico o coordinador",
+    });
   }
 
   // Hashear contraseña
@@ -34,13 +55,19 @@ export async function crearUsuario(req: Request, res: Response) {
 
     const created = r.recordset[0];
     res.status(201).json({
-      id: created.id,
-      username: created.username,
-      rol: created.rol
+      success: true,
+      data: {
+        id: created.id,
+        username: created.username,
+        rol: created.rol,
+      },
     });
   } catch (error: any) {
     if (error.message?.includes("duplicado") || error.message?.includes("duplicate")) {
-      return res.status(400).json({ error: "El username ya existe" });
+      return res.status(400).json({
+        success: false,
+        error: "El username ya existe",
+      });
     }
     throw error;
   }
@@ -55,12 +82,26 @@ export async function cambiarContrasena(req: AuthRequest, res: Response) {
   };
 
   if (!passwordActual || !passwordNueva) {
-    return res.status(400).json({ error: "passwordActual y passwordNueva son requeridos" });
+    return res.status(400).json({
+      success: false,
+      error: "passwordActual y passwordNueva son requeridos",
+    });
+  }
+
+  // Validación de longitud mínima
+  if (passwordNueva.length < 6) {
+    return res.status(400).json({
+      success: false,
+      error: "La contraseña nueva debe tener al menos 6 caracteres",
+    });
   }
 
   // Solo el propio usuario o un coordinador pueden cambiar la contraseña
   if (req.user!.id !== id && req.user!.rol !== "coordinador") {
-    return res.status(403).json({ error: "No autorizado" });
+    return res.status(403).json({
+      success: false,
+      error: "No autorizado",
+    });
   }
 
   const pool = await getPool();
@@ -72,14 +113,20 @@ export async function cambiarContrasena(req: AuthRequest, res: Response) {
 
   const user = userRes.recordset[0];
   if (!user) {
-    return res.status(404).json({ error: "Usuario no encontrado" });
+    return res.status(404).json({
+      success: false,
+      error: "Usuario no encontrado",
+    });
   }
 
   // Validar contraseña actual (solo si el usuario cambia su propia contraseña)
   if (req.user!.id === id) {
     const ok = await bcrypt.compare(passwordActual, user.password_hash);
     if (!ok) {
-      return res.status(401).json({ error: "Contraseña actual incorrecta" });
+      return res.status(401).json({
+        success: false,
+        error: "Contraseña actual incorrecta",
+      });
     }
   }
 
@@ -94,10 +141,16 @@ export async function cambiarContrasena(req: AuthRequest, res: Response) {
     .execute("sp_Usuarios_ActualizarPassword");
 
   if (!updateRes.recordset[0]?.updated) {
-    return res.status(400).json({ error: "No se pudo actualizar la contraseña" });
+    return res.status(400).json({
+      success: false,
+      error: "No se pudo actualizar la contraseña",
+    });
   }
 
-  res.json({ ok: true, message: "Contraseña actualizada correctamente" });
+  res.json({
+    success: true,
+    data: { message: "Contraseña actualizada correctamente" },
+  });
 }
 
 // GET /usuarios - Listar usuarios (solo coordinador)
@@ -113,9 +166,12 @@ export async function listarUsuarios(req: Request, res: Response) {
     .execute("sp_Usuarios_Listar");
 
   res.json({
-    page,
-    pageSize,
-    total: r.recordset?.[0]?.total ?? 0,
-    data: r.recordset ?? []
+    success: true,
+    data: {
+      page,
+      pageSize,
+      total: r.recordset?.[0]?.total ?? 0,
+      data: r.recordset ?? [],
+    },
   });
 }

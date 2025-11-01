@@ -37,12 +37,15 @@ export async function listarExpedientes(req: AuthRequest, res: Response) {
 
   const r = await request.execute("sp_Expedientes_Listar");
   
-  // Respuesta uniforme con alias
+  // Respuesta normalizada con paginación
   res.json({
-    page,
-    pageSize,
-    total: r.recordset?.[0]?.total ?? 0,
-    data: r.recordset ?? []
+    success: true,
+    data: {
+      page,
+      pageSize,
+      total: r.recordset?.[0]?.total ?? 0,
+      data: r.recordset ?? [],
+    },
   });
 }
 
@@ -54,8 +57,8 @@ export async function obtenerExpediente(req: AuthRequest, res: Response) {
   const pool = await getPool();
   const r = await pool.request().input("id", sql.Int, id).execute("sp_Expedientes_Obtener");
   const exp = r.recordset[0];
-  if (!exp) return res.status(404).json({ error: "No existe" });
-  res.json(exp);
+  if (!exp) return res.status(404).json({ success: false, error: "No existe" });
+  res.json({ success: true, data: exp });
 }
 
 /* =========================
@@ -67,7 +70,7 @@ export async function crearExpediente(req: AuthRequest, res: Response) {
   };
 
   if (!codigo || !descripcion) {
-    return res.status(400).json({ error: "codigo y descripcion son obligatorios" });
+    return res.status(400).json({ success: false, error: "codigo y descripcion son obligatorios" });
   }
   const tecnico_id = req.user!.id;
 
@@ -81,7 +84,7 @@ export async function crearExpediente(req: AuthRequest, res: Response) {
 
   // Opcional: el SP puede devolver el nuevo id
   const created = r.recordset?.[0] ?? null;
-  res.status(201).json({ ok: true, created });
+  res.status(201).json({ success: true, data: created });
 }
 
 /* =========================
@@ -103,7 +106,7 @@ export async function actualizarExpediente(req: AuthRequest, res: Response) {
     
     const owner = ownerCheck.recordset[0];
     if (!owner || owner.tecnico_id !== req.user.id) {
-      return res.status(403).json({ error: "No eres el dueño de este expediente" });
+      return res.status(403).json({ success: false, error: "No eres el dueño de este expediente" });
     }
   }
 
@@ -117,10 +120,10 @@ export async function actualizarExpediente(req: AuthRequest, res: Response) {
     .execute("sp_Expedientes_Actualizar");
 
   if (!r.recordset[0]?.updated) {
-    return res.status(404).json({ error: "Expediente no encontrado" });
+    return res.status(404).json({ success: false, error: "Expediente no encontrado" });
   }
   
-  res.json({ ok: true });
+  res.json({ success: true, data: { ok: true } });
 }
 
 /* =========================
@@ -134,7 +137,7 @@ export async function cambiarEstado(req: AuthRequest, res: Response) {
 
   // Validar estado
   if (!["aprobado", "rechazado"].includes(estado)) {
-    return res.status(400).json({ error: "estado inválido" });
+    return res.status(400).json({ success: false, error: "estado inválido" });
   }
 
   // RBAC: Solo coordinador puede cambiar estado (ya verificado en route middleware)
@@ -143,6 +146,7 @@ export async function cambiarEstado(req: AuthRequest, res: Response) {
   if (estado === "rechazado") {
     if (!justificacion || justificacion.trim().length === 0) {
       return res.status(400).json({ 
+        success: false,
         error: "La justificación es obligatoria cuando se rechaza un expediente" 
       });
     }
@@ -157,10 +161,10 @@ export async function cambiarEstado(req: AuthRequest, res: Response) {
     .execute("sp_Expedientes_CambiarEstado");
 
   if (!r.recordset[0]?.updated) {
-    return res.status(400).json({ error: "No se pudo cambiar estado" });
+    return res.status(400).json({ success: false, error: "No se pudo cambiar estado" });
   }
   
-  res.json({ ok: true });
+  res.json({ success: true, data: { ok: true } });
 }
 
 /* =========================
@@ -178,8 +182,8 @@ export async function toggleActivoExpediente(req: AuthRequest, res: Response) {
     .input("modificado_por", sql.Int, modificado_por)
     .execute("sp_Expedientes_ActivarDesactivar");
 
-  if (!r.recordset[0]?.updated) return res.status(400).json({ error: "No se pudo actualizar activo" });
-  res.json({ ok: true });
+  if (!r.recordset[0]?.updated) return res.status(400).json({ success: false, error: "No se pudo actualizar activo" });
+  res.json({ success: true, data: { ok: true } });
 }
 
 /* =========================
@@ -231,9 +235,13 @@ export async function exportarExpedientes(req: AuthRequest, res: Response) {
   // Generar buffer
   const buffer = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
 
+  // Generar nombre de archivo con fecha actual
+  const fechaActual = new Date().toISOString().split('T')[0];
+  const nombreArchivo = `expedientes_${fechaActual}.xlsx`;
+
   // Enviar archivo
   res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-  res.setHeader("Content-Disposition", "attachment; filename=expedientes.xlsx");
+  res.setHeader("Content-Disposition", `attachment; filename=${nombreArchivo}`);
   res.send(buffer);
 }
 
@@ -245,7 +253,10 @@ export async function exportarExpedienteIndividual(req: AuthRequest, res: Respon
     const id = Number(req.params.id);
     
     if (isNaN(id)) {
-      return res.status(400).json({ error: "ID inválido" });
+      return res.status(400).json({
+        success: false,
+        error: "ID inválido",
+      });
     }
 
     const pool = await getPool();
@@ -256,7 +267,10 @@ export async function exportarExpedienteIndividual(req: AuthRequest, res: Respon
       .execute("sp_Expedientes_Obtener");
     
     if (!expedienteResult.recordset || expedienteResult.recordset.length === 0) {
-      return res.status(404).json({ error: "Expediente no encontrado" });
+      return res.status(404).json({
+        success: false,
+        error: "Expediente no encontrado",
+      });
     }
 
     const expediente = expedienteResult.recordset[0];
@@ -337,6 +351,9 @@ export async function exportarExpedienteIndividual(req: AuthRequest, res: Respon
 
   } catch (error) {
     console.error("Error al exportar expediente individual:", error);
-    res.status(500).json({ error: "Error al exportar expediente" });
+    res.status(500).json({
+      success: false,
+      error: "Error al exportar expediente",
+    });
   }
 }

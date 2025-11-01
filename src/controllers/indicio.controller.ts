@@ -26,10 +26,13 @@ export async function listarIndiciosPorExpediente(req: AuthRequest, res: Respons
     .execute("sp_Indicios_ListarPorExpediente");
 
   res.json({
-    page,
-    pageSize,
-    total: r.recordset?.[0]?.total ?? 0,
-    data: r.recordset ?? []
+    success: true,
+    data: {
+      page,
+      pageSize,
+      total: r.recordset?.[0]?.total ?? 0,
+      data: r.recordset ?? [],
+    },
   });
 }
 
@@ -44,10 +47,10 @@ export async function crearIndicio(req: AuthRequest, res: Response) {
   if (req.user?.rol === "tecnico") {
     const owner = await getExpedienteOwner(expediente_id);
     if (!owner) {
-      return res.status(404).json({ error: "Expediente no encontrado" });
+      return res.status(404).json({ success: false, error: "Expediente no encontrado" });
     }
     if (owner.tecnico_id !== req.user.id) {
-      return res.status(403).json({ error: "No eres el dueño de este expediente" });
+      return res.status(403).json({ success: false, error: "No eres el dueño de este expediente" });
     }
   }
 
@@ -60,7 +63,7 @@ export async function crearIndicio(req: AuthRequest, res: Response) {
     .input("tamano", sql.NVarChar(50), tamano ?? null)
     .execute("sp_Indicios_Crear");
 
-  res.status(201).json({ id: r.recordset[0].id });
+  res.status(201).json({ success: true, data: { id: r.recordset[0].id } });
 }
 
 // PUT /indicios/:id
@@ -79,17 +82,17 @@ export async function actualizarIndicio(req: AuthRequest, res: Response) {
       .query("SELECT expediente_id FROM Indicios WHERE id=@id AND activo=1");
     
     if (!indicioRes.recordset[0]) {
-      return res.status(404).json({ error: "Indicio no encontrado" });
+      return res.status(404).json({ success: false, error: "Indicio no encontrado" });
     }
     
     const expediente_id = indicioRes.recordset[0].expediente_id;
     const owner = await getExpedienteOwner(expediente_id);
     
     if (!owner) {
-      return res.status(404).json({ error: "Expediente no encontrado" });
+      return res.status(404).json({ success: false, error: "Expediente no encontrado" });
     }
     if (owner.tecnico_id !== req.user.id) {
-      return res.status(403).json({ error: "No eres el dueño de este expediente" });
+      return res.status(403).json({ success: false, error: "No eres el dueño de este expediente" });
     }
   }
 
@@ -103,8 +106,8 @@ export async function actualizarIndicio(req: AuthRequest, res: Response) {
     .input("modificado_por", sql.Int, modificado_por)
     .execute("sp_Indicios_Actualizar");
 
-  if (!r.recordset[0]?.updated) return res.status(400).json({ error: "No se pudo actualizar" });
-  res.json({ ok: true });
+  if (!r.recordset[0]?.updated) return res.status(400).json({ success: false, error: "No se pudo actualizar" });
+  res.json({ success: true, data: { ok: true } });
 }
 
 // PATCH /indicios/:id/activo
@@ -121,17 +124,17 @@ export async function toggleActivoIndicio(req: AuthRequest, res: Response) {
       .query("SELECT expediente_id FROM Indicios WHERE id=@id");
     
     if (!indicioRes.recordset[0]) {
-      return res.status(404).json({ error: "Indicio no encontrado" });
+      return res.status(404).json({ success: false, error: "Indicio no encontrado" });
     }
     
     const expediente_id = indicioRes.recordset[0].expediente_id;
     const owner = await getExpedienteOwner(expediente_id);
     
     if (!owner) {
-      return res.status(404).json({ error: "Expediente no encontrado" });
+      return res.status(404).json({ success: false, error: "Expediente no encontrado" });
     }
     if (owner.tecnico_id !== req.user.id) {
-      return res.status(403).json({ error: "No eres el dueño de este expediente" });
+      return res.status(403).json({ success: false, error: "No eres el dueño de este expediente" });
     }
   }
 
@@ -142,6 +145,6 @@ export async function toggleActivoIndicio(req: AuthRequest, res: Response) {
     .input("modificado_por", sql.Int, modificado_por)
     .execute("sp_Indicios_ActivarDesactivar");
 
-  if (!r.recordset[0]?.updated) return res.status(400).json({ error: "No se pudo actualizar activo" });
-  res.json({ ok: true });
+  if (!r.recordset[0]?.updated) return res.status(400).json({ success: false, error: "No se pudo actualizar activo" });
+  res.json({ success: true, data: { ok: true } });
 }
