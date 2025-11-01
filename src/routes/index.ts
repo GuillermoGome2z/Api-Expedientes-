@@ -4,6 +4,7 @@ import { getPool } from "../db/db";
 import authRoutes from "./auth.routes";
 import expedienteRoutes from "./expediente.routes";
 import indicioRoutes from "./indicio.routes";
+import usuarioRoutes from "./usuario.routes";
 
 const r = Router();
 
@@ -19,6 +20,7 @@ r.get("/db/ping", async (_req, res) => {
 
 // subrutas
 r.use("/auth", authRoutes);
+r.use("/usuarios", usuarioRoutes);
 r.use("/expedientes", expedienteRoutes);
 r.use("/", indicioRoutes); // expone /expedientes/:id/indicios y /indicios/:id...
 

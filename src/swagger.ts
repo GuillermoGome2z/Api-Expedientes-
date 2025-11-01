@@ -10,12 +10,31 @@ export function mountSwagger(app: Express): void {
         title: "API de Gestión de Expedientes e Indicios",
         version: "1.0.0",
         description:
-          "Documentación generada con Swagger para la API de Expedientes e Indicios.\n\nIncluye endpoints de autenticación, expedientes e indicios.",
+          "Documentación generada con Swagger para la API de Expedientes e Indicios.\n\n" +
+          "Incluye endpoints de autenticación, expedientes, indicios y usuarios.\n\n" +
+          "**Credenciales de prueba:**\n" +
+          "- Técnico: `tecnico1` / `tecnico123`\n" +
+          "- Coordinador: `coord1` / `tecnico123`",
       },
       servers: [
         {
           url: "http://localhost:3000/api",
           description: "Servidor local (desarrollo)",
+        },
+      ],
+      components: {
+        securitySchemes: {
+          BearerAuth: {
+            type: "http",
+            scheme: "bearer",
+            bearerFormat: "JWT",
+            description: "Ingrese el token JWT obtenido del endpoint /auth/login",
+          },
+        },
+      },
+      security: [
+        {
+          BearerAuth: [],
         },
       ],
     },

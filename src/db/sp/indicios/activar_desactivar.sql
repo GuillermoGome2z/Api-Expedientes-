@@ -4,10 +4,15 @@ IF OBJECT_ID('sp_Indicios_ActivarDesactivar') IS NOT NULL DROP PROC sp_Indicios_
 GO
 CREATE PROC sp_Indicios_ActivarDesactivar
   @id INT,
-  @activo BIT
+  @activo BIT,
+  @modificado_por INT
 AS
 BEGIN
-  UPDATE Indicios SET activo=@activo WHERE id=@id;
+  UPDATE Indicios 
+  SET activo=@activo,
+      fecha_actualizacion=GETDATE(),
+      modificado_por=@modificado_por
+  WHERE id=@id;
   SELECT @@ROWCOUNT AS updated;
 END;
 GO

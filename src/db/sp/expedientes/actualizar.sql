@@ -6,11 +6,15 @@ CREATE PROC sp_Expedientes_Actualizar
   @id INT,
   @titulo NVARCHAR(255),
   @descripcion NVARCHAR(MAX),
-  @tecnico_id INT
+  @tecnico_id INT,
+  @modificado_por INT
 AS
 BEGIN
   UPDATE Expedientes
-  SET titulo=@titulo, descripcion=@descripcion
+  SET titulo=@titulo, 
+      descripcion=@descripcion,
+      fecha_actualizacion=GETDATE(),
+      modificado_por=@modificado_por
   WHERE id=@id AND activo=1 AND tecnico_id=@tecnico_id;
 
   SELECT @@ROWCOUNT AS updated;
