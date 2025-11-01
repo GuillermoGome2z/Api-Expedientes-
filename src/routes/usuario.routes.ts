@@ -98,9 +98,14 @@ r.post(
 r.patch(
   "/:id/password",
   requireAuth,
-  // Aceptar ambos formatos: passwordActual/passwordNueva o password/newPassword
-  body(["passwordActual", "password"]).optional().isString().withMessage("La contraseña actual debe ser string"),
-  body(["passwordNueva", "newPassword"]).isString().isLength({ min: 6 }).withMessage("La contraseña nueva debe tener al menos 6 caracteres"),
+  // Validación personalizada: aceptar passwordNueva O newPassword
+  body().custom((value, { req }) => {
+    const passwordNueva = req.body.passwordNueva || req.body.newPassword;
+    if (!passwordNueva || typeof passwordNueva !== 'string' || passwordNueva.length < 6) {
+      throw new Error('La contraseña nueva debe ser un string de al menos 6 caracteres (usar passwordNueva o newPassword)');
+    }
+    return true;
+  }),
   validate,
   cambiarContrasena
 );

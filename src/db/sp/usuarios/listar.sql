@@ -10,11 +10,11 @@ BEGIN
   SET NOCOUNT ON;
   DECLARE @total INT;
   
-  SELECT @total = COUNT(*) FROM Usuarios WHERE activo=1;
+  -- Mostrar TODOS los usuarios (activos e inactivos)
+  SELECT @total = COUNT(*) FROM Usuarios;
   
   SELECT id, username, rol, activo, @total AS total
   FROM Usuarios
-  WHERE activo=1
   ORDER BY id
   OFFSET (@page-1)*@pageSize ROWS FETCH NEXT @pageSize ROWS ONLY;
 END;
