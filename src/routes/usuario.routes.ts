@@ -113,21 +113,8 @@ r.patch(
  *     security:
  *       - bearerAuth: []
  *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *         description: Número de página
- *       - in: query
- *         name: pagina
- *         schema:
- *           type: integer
- *         description: Número de página (alias)
- *       - in: query
- *         name: pageSize
- *         schema:
- *           type: integer
- *         description: Tamaño de página
+ *       - $ref: '#/components/parameters/PageQuery'
+ *       - $ref: '#/components/parameters/PageSizeQuery'
  *     responses:
  *       200:
  *         description: Lista de usuarios

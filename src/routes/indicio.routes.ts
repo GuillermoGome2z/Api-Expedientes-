@@ -27,6 +27,8 @@ const r = Router();
  *         schema:
  *           type: integer
  *         description: ID del expediente
+ *       - $ref: '#/components/parameters/PageQuery'
+ *       - $ref: '#/components/parameters/PageSizeQuery'
  *     responses:
  *       200:
  *         description: Lista de indicios

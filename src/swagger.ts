@@ -1,12 +1,8 @@
 import { Express } from "express";
 import swaggerUi from "swagger-ui-express";
 import swaggerJSDoc, { Options } from "swagger-jsdoc";
-import { env } from "./config/env";
 
 export function mountSwagger(app: Express): void {
-  const BASE_PATH = env.BASE_PATH;
-  const PORT = env.PORT;
-  
   const options: Options = {
     definition: {
       openapi: "3.0.0",
@@ -18,15 +14,11 @@ export function mountSwagger(app: Express): void {
           "Incluye endpoints de autenticación, expedientes, indicios y usuarios.\n\n" +
           "**Credenciales de prueba:**\n" +
           "- Técnico: `tecnico1` / `tecnico123`\n" +
-          "- Coordinador: `coord1` / `tecnico123`\n\n" +
-          "**Paginación:**\n" +
-          "Los endpoints de listado soportan alias:\n" +
-          "- `page` o `pagina` (número de página)\n" +
-          "- `pageSize` o `tamanoPagina` (tamaño de página)",
+          "- Coordinador: `coord1` / `tecnico123`",
       },
       servers: [
         {
-          url: `http://localhost:${PORT}${BASE_PATH}`,
+          url: "http://localhost:3000/api",
           description: "Servidor local (desarrollo)",
         },
       ],
@@ -36,11 +28,26 @@ export function mountSwagger(app: Express): void {
             type: "http",
             scheme: "bearer",
             bearerFormat: "JWT",
-            description: "Ingrese el token JWT obtenido del endpoint /auth/login (sin el prefijo 'Bearer')",
+            description: "Ingrese el token JWT obtenido del endpoint /auth/login",
+          },
+        },
+        parameters: {
+          PageQuery: {
+            name: "page",
+            in: "query",
+            description: "Número de página (empieza en 1). También acepta el alias `pagina`.",
+            required: false,
+            schema: { type: "integer", minimum: 1, default: 1 },
+          },
+          PageSizeQuery: {
+            name: "pageSize",
+            in: "query",
+            description: "Tamaño de página. También acepta el alias `tamanoPagina`.",
+            required: false,
+            schema: { type: "integer", minimum: 1, maximum: 100, default: 10 },
           },
         },
       },
-      // Seguridad global por defecto (se puede sobreescribir en rutas individuales)
       security: [
         {
           bearerAuth: [],
