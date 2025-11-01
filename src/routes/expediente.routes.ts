@@ -35,6 +35,47 @@ r.get("/", requireAuth, listarExpedientes);
 
 /**
  * @openapi
+ * /expedientes/export:
+ *   get:
+ *     summary: Exportar expedientes a Excel
+ *     tags: [Expedientes]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: estado
+ *         schema:
+ *           type: string
+ *           enum: [abierto, aprobado, rechazado]
+ *       - in: query
+ *         name: tecnicoId
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: fechaInicio
+ *         schema:
+ *           type: string
+ *           format: date
+ *           example: "2025-01-01"
+ *       - in: query
+ *         name: fechaFin
+ *         schema:
+ *           type: string
+ *           format: date
+ *           example: "2025-12-31"
+ *     responses:
+ *       200:
+ *         description: Archivo Excel con expedientes
+ *         content:
+ *           application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+ *             schema:
+ *               type: string
+ *               format: binary
+ */
+r.get("/export", requireAuth, exportarExpedientes);
+
+/**
+ * @openapi
  * /expedientes/{id}:
  *   get:
  *     summary: Obtener un expediente por ID
@@ -269,46 +310,5 @@ r.patch(
  *         description: Estado de activo actualizado
  */
 r.patch("/:id/activo", requireAuth, toggleActivoExpediente);
-
-/**
- * @openapi
- * /expedientes/export:
- *   get:
- *     summary: Exportar expedientes a Excel
- *     tags: [Expedientes]
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - in: query
- *         name: estado
- *         schema:
- *           type: string
- *           enum: [abierto, aprobado, rechazado]
- *       - in: query
- *         name: tecnicoId
- *         schema:
- *           type: integer
- *       - in: query
- *         name: fechaInicio
- *         schema:
- *           type: string
- *           format: date
- *           example: "2025-01-01"
- *       - in: query
- *         name: fechaFin
- *         schema:
- *           type: string
- *           format: date
- *           example: "2025-12-31"
- *     responses:
- *       200:
- *         description: Archivo Excel con expedientes
- *         content:
- *           application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
- *             schema:
- *               type: string
- *               format: binary
- */
-r.get("/export", requireAuth, exportarExpedientes);
 
 export default r;
