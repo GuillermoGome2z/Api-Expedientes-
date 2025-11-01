@@ -76,15 +76,15 @@ export async function crearUsuario(req: Request, res: Response) {
 // PATCH /usuarios/:id/password - Cambiar contraseña
 export async function cambiarContrasena(req: AuthRequest, res: Response) {
   const id = Number(req.params.id);
-  const { passwordActual, passwordNueva } = req.body as {
-    passwordActual: string;
-    passwordNueva: string;
-  };
+  // Aceptar ambos formatos: frontend puede enviar passwordNueva/passwordActual o newPassword/password
+  const body = req.body as any;
+  const passwordActual = body.passwordActual || body.password;
+  const passwordNueva = body.passwordNueva || body.newPassword;
 
-  if (!passwordActual || !passwordNueva) {
+  if (!passwordNueva) {
     return res.status(400).json({
       success: false,
-      error: "passwordActual y passwordNueva son requeridos",
+      error: "La contraseña nueva es requerida (passwordNueva o newPassword)",
     });
   }
 
@@ -202,8 +202,20 @@ export async function toggleActivoUsuario(req: AuthRequest, res: Response) {
     });
   }
 
+  // Obtener el usuario actualizado para devolverlo
+  const userRes = await pool.request()
+    .input("id", sql.Int, id)
+    .execute("sp_Usuarios_Obtener");
+
+  const usuario = userRes.recordset[0];
+  
   res.json({
     success: true,
-    data: { ok: true },
+    data: {
+      id: usuario.id,
+      username: usuario.username,
+      rol: usuario.rol,
+      activo: usuario.activo
+    },
   });
 }

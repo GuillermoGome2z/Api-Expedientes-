@@ -98,8 +98,9 @@ r.post(
 r.patch(
   "/:id/password",
   requireAuth,
-  body("passwordActual").optional().isString().withMessage("La contraseña actual debe ser string"),
-  body("passwordNueva").isString().isLength({ min: 6 }).withMessage("La contraseña nueva debe tener al menos 6 caracteres"),
+  // Aceptar ambos formatos: passwordActual/passwordNueva o password/newPassword
+  body(["passwordActual", "password"]).optional().isString().withMessage("La contraseña actual debe ser string"),
+  body(["passwordNueva", "newPassword"]).isString().isLength({ min: 6 }).withMessage("La contraseña nueva debe tener al menos 6 caracteres"),
   validate,
   cambiarContrasena
 );
