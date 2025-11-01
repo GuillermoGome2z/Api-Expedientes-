@@ -1,891 +1,274 @@
-# API de Gestión de Expedientes e Indicios# API de Gestion de Expedientes e Indicios# API de Gestion de Expedientes e Indicios
-
-
+# API de Gestión de Expedientes e Indicios
 
 API REST desarrollada en **TypeScript + Express** con persistencia en **SQL Server** mediante procedimientos almacenados, autenticación con **JWT** y control de roles (técnico y coordinador).
 
-
-
-**Proyecto:** Desarrollo Web - Universidad Mariano Gálvez (2025)API REST desarrollada en TypeScript + Express con persistencia en SQL Server mediante procedimientos almacenados, autenticacion con JWT y control de roles.API REST desarrollada en **TypeScript + Express** con persistencia en **SQL Server** mediante procedimientos almacenados, autenticacion con **JWT** y control de roles (tecnico y coordinador).
-
-
+**Proyecto:** Desarrollo Web - Universidad Mariano Gálvez (2025)
 
 ---
 
+## ✨ Características principales
 
+### 🔐 Seguridad
+- Autenticación con **JWT** (bcrypt para hash de contraseñas)
+- Control de acceso basado en roles (**RBAC**): Técnico y Coordinador
+- Validación de **ownership**: técnicos solo pueden modificar sus propios expedientes
+- Middleware global de manejo de errores con mensajes diferenciados por entorno
+- Validación de variables de entorno con **Zod** (type-safe en tiempo de ejecución)
 
-## ✨ Características**Proyecto:** Desarrollo Web - Universidad Mariano Galvez (2025)Proyecto entregado para la clase de **Desarrollo Web - Universidad Mariano Galvez (2025)**.
+### 📊 Funcionalidad
+- **CRUD completo** de Expedientes e Indicios
+- Flujo de aprobación de expedientes (aprobado/rechazado con justificación obligatoria)
+- Eliminación lógica mediante campo `activo`
+- **Filtros avanzados**: estado, técnicoId, rango de fechas, búsqueda por texto
+- **Paginación** en listados con aliases en español (`page/pagina`, `pageSize/tamanoPagina`)
+- **Exportación a Excel** con filtros aplicados
+- Campos de auditoría: `fecha_creacion`, `fecha_actualizacion`, `modificado_por`
 
+### 🛠️ Arquitectura
+- TypeScript **strict mode** con tipado completo (incluyendo extensión de `Express.Request`)
+- **Stored Procedures** para todas las operaciones de base de datos
+- Rutas configurables mediante `BASE_PATH` (útil para subdominios o proxies)
+- CORS configurable por entorno
+- Documentación completa con **Swagger UI** en `/docs` (incluyendo `bearerAuth` scheme)
+- Scripts SQL completos (schema + seed + stored procedures)
 
+---
 
-- ✅ Autenticación con JWT (bcrypt para hash de contraseñas)
+## 🏗️ Tecnologías
 
-- ✅ Roles: Técnico y Coordinador
-
-- ✅ CRUD completo de Expedientes e Indicios------
-
-- ✅ Flujo de aprobación de expedientes (aprobado/rechazado con justificación obligatoria)
-
-- ✅ Eliminación lógica mediante campo `activo`
-
-- ✅ Validaciones robustas con express-validator + Zod
-
-- ✅ Filtros avanzados: estado, técnicoId, rango de fechas, búsqueda por texto## Caracteristicas## Caracteristicas
-
-- ✅ **Paginación flexible:** Soporta `page`/`pagina` y `pageSize`/`tamanoPagina` (español/inglés)
-
-- ✅ Exportación a Excel con filtros aplicados
-
-- ✅ Campos de auditoría: `fecha_creacion`, `fecha_actualizacion`, `modificado_por`
-
-- ✅ Validación de ownership (técnicos solo pueden modificar sus expedientes/indicios)- Autenticacion JWT con bcrypt- Autenticacion con JWT (bcrypt para hash de contrasenas)
-
-- ✅ **Middleware de errores global** con manejo de UnauthorizedError
-
-- ✅ **Validación de variables de entorno con Zod** (fail-fast al iniciar)- Roles: Tecnico y Coordinador- Roles: Tecnico y Coordinador
-
-- ✅ **BASE_PATH configurable** (por defecto `/api`)
-
-- ✅ **Tipado TypeScript completo** con extensiones globales para Express- CRUD completo de Expedientes e Indicios- CRUD completo de Expedientes e Indicios
-
-- ✅ Documentación completa con Swagger UI en `/docs`
-
-- ✅ Scripts SQL completos (schema + seed + stored procedures)- Flujo de aprobacion de expedientes- Flujo de aprobacion de expedientes (aprobado/rechazado con justificacion)
-
-
-
----- Validaciones con express-validator- Eliminacion logica mediante campo `activo`
-
-
-
-## 🛠 Tecnologías- Filtros avanzados: estado, tecnico, rango de fechas, busqueda- Validaciones con express-validator:
-
-
-
-- **Backend:** TypeScript 5.9, Express 5.1, Node.js- Paginacion en listados  - Codigo de expediente unico
-
+- **Backend:** TypeScript 5.9, Express 5.1, Node.js
 - **Base de datos:** SQL Server 2022 (Docker)
-
-- **Autenticación:** JWT + bcrypt- Exportacion a Excel  - Peso mayor o igual a 0
-
+- **Autenticación:** JWT + bcrypt
 - **Validación:** express-validator + Zod
-
-- **Documentación:** Swagger UI (swagger-jsdoc)- Campos de auditoria automaticos  - Control de permisos por rol
-
+- **Documentación:** Swagger UI (swagger-jsdoc + swagger-ui-express)
 - **Exportación:** xlsx
 
-- Validacion de ownership (tecnicos solo modifican sus expedientes)  - Validacion de ownership (tecnicos solo pueden modificar sus expedientes)
-
 ---
-
-- Eliminacion logica con campo `activo`- Filtros avanzados: estado, tecnicoId, rango de fechas, busqueda por texto
 
 ## 📁 Estructura del proyecto
 
-- Documentacion Swagger UI completa- Paginacion en listados
-
+```
+src/
+├─ controllers/       # Lógica de negocio
+├─ routes/            # Definición de endpoints
+├─ middlewares/       # Autenticación, validación, roles, errores
+├─ config/            # Validación de env con Zod
+├─ types/             # Extensiones TypeScript (Express.Request)
+├─ db/
+│  ├─ db.ts          # Conexión a SQL Server
+│  └─ sp/            # Stored procedures organizados por módulo
+├─ auth/             # Utilidades JWT
+├─ scripts/          # Schema y seed SQL
+└─ swagger.ts        # Documentación OpenAPI
 ```
 
-src/- Exportacion a Excel con filtros aplicados
+---
 
-├── controllers/        # Lógica de negocio
+## ⚙️ Instalación y ejecución
 
-├── routes/             # Definición de endpoints---- Campos de auditoria: fecha_creacion, fecha_actualizacion, modificado_por
-
-├── middlewares/        # Autenticación, validación, roles, errores
-
-├── config/             # Validación de variables de entorno (Zod)- Documentacion con Swagger UI en `/docs`
-
-├── types/              # Extensiones de tipos TypeScript
-
-├── db/## Tecnologias- Scripts SQL completos (schema + seed + stored procedures)
-
-│   ├── db.ts           # Conexión a SQL Server
-
-│   └── sp/             # Stored procedures
-
-├── auth/               # Utilidades JWT
-
-├── scripts/            # Schema y seed SQL- **Backend:** TypeScript 5.9, Express 5.1, Node.js---
-
-└── swagger.ts          # Documentación OpenAPI
-
-```- **Base de datos:** SQL Server 2022 (Docker)
-
-
-
----- **Autenticacion:** JWT + bcrypt## Estructura del proyecto
-
-
-
-## ⚙️ Instalación y ejecución- **Validacion:** express-validator
-
-
-
-### 1️⃣ Clonar el repositorio- **Documentacion:** Swagger UI```
+### 1️⃣ Clonar el repositorio
 
 ```bash
-
-git clone https://github.com/GuillermoGome2z/Api-Expedientes-.git- **Exportacion:** xlsxsrc/
-
+git clone https://github.com/GuillermoGome2z/Api-Expedientes-.git
 cd Api-Expedientes-
-
-```├─ controllers/     # Logica de negocio
-
-
-
-### 2️⃣ Instalar dependencias---├─ routes/          # Definicion de endpoints
-
-```bash
-
-npm install├─ middlewares/     # Autenticacion, validacion, roles
-
 ```
 
-## Instalacion rapida├─ db/
+### 2️⃣ Instalar dependencias
+
+```bash
+npm install
+```
 
 ### 3️⃣ Configurar variables de entorno
 
-│  ├─ db.ts        # Conexion a SQL Server
-
-Crear archivo `.env` en la raíz del proyecto:
-
-### 1. Clonar repositorio│  └─ sp/          # Stored procedures
+Crear archivo `.env` en la raíz del proyecto (puedes copiar `.env.example`):
 
 ```env
+NODE_ENV=development
+PORT=3000
 
-# Servidor```bash├─ auth/           # Utilidades JWT
-
-NODE_ENV=development       # development | production
-
-PORT=3000                  # Puerto del servidor (convertido a number)git clone https://github.com/GuillermoGome2z/Api-Expedientes-.git├─ scripts/        # Schema y seed SQL
-
-
-
-# Seguridad JWTcd Api-Expedientes-└─ swagger.ts      # Documentacion OpenAPI
-
-JWT_SECRET=tu_secreto_super_seguro_minimo_32_caracteres  # ⚠️ Mínimo 32 caracteres
-
-JWT_EXPIRES=1h``````
-
-
-
-# Base de datos SQL Server
+JWT_SECRET=supersecreto_cambiame_en_produccion_minimo_32_caracteres
+JWT_EXPIRES=1h
 
 DB_SERVER=localhost
-
-DB_USER=sa### 2. Instalar dependencias---
-
+DB_USER=sa
 DB_PASS=YourStrong!Passw0rd
-
-DB_NAME=expedientes_db```bash
-
-
-
-# Autenticaciónnpm install---
+DB_NAME=expedientes_db
 
 BCRYPT_SALT_ROUNDS=10
 
+# Configuración de rutas base (opcional, default: /api)
+BASE_PATH=/api
+
+# CORS (opcional, por defecto permite todos los orígenes)
+# CORS_ORIGIN=http://localhost:5173,http://localhost:3000
 ```
 
-# API Configuration
+**Importante:**
+- `JWT_SECRET` debe tener **mínimo 32 caracteres** en producción
+- `BASE_PATH` configura el prefijo de todas las rutas (útil para subdominios o proxies)
+- `CORS_ORIGIN` acepta múltiples orígenes separados por comas
 
-BASE_PATH=/api             # Prefijo de rutas (default: /api)## ⚙️ Instalación y ejecución
-
-CORS_ORIGIN=http://localhost:5173,http://localhost:3001  # Orígenes CORS separados por coma
-
-```### 3. Configurar variables de entorno
-
-
-
-> **⚠️ Nota importante:** Todas las variables de entorno son **validadas con Zod** al iniciar el servidor. Si falta alguna o tiene formato inválido, el servidor no arrancará y mostrará un error descriptivo.Crear archivo `.env`:### 1️⃣ Clonar el repositorio
-
-
-
-#### Variables requeridas:```env```bash
-
-- `JWT_SECRET` debe tener **mínimo 32 caracteres**
-
-- `PORT` será convertido automáticamente a númeroPORT=3000git clone https://github.com/GuillermoGome2z/Api-Expedientes-.git
-
-- `NODE_ENV` debe ser `development` o `production`
-
-- `BASE_PATH` es el prefijo de todas las rutas (default: `/api`)JWT_SECRET=tu_secreto_super_segurocd Api-Expedientes-
-
-
-
-### 4️⃣ Levantar SQL Server con DockerJWT_EXPIRES=1h```
+### 4️⃣ Levantar SQL Server con Docker
 
 ```bash
-
-docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=YourStrong!Passw0rd" \DB_SERVER=localhost
-
+docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=YourStrong!Passw0rd" \
   -p 1433:1433 --name sqlserver -d mcr.microsoft.com/mssql/server:2022-latest
-
-```DB_USER=sa### 2️⃣ Instalar dependencias
-
-
-
-### 5️⃣ Inicializar base de datosDB_PASS=YourStrong!Passw0rd```bash
-
-
-
-**PowerShell:**DB_NAME=expedientes_dbnpm install
-
-```powershell
-
-# Crear base de datos y tablasBCRYPT_SALT_ROUNDS=10```
-
-Get-Content .\src\scripts\schema.sql | docker exec -i sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "YourStrong!Passw0rd" -C
-
 ```
 
-# Insertar datos de prueba
+### 5️⃣ Inicializar base de datos
 
-Get-Content .\src\scripts\seed.sql | docker exec -i sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "YourStrong!Passw0rd" -C### 3 - Configurar variables de entorno
+**Opción 1 - PowerShell (Recomendado):**
 
+```powershell
+# Crear base de datos y tablas
+Get-Content .\src\scripts\schema.sql | docker exec -i sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "YourStrong!Passw0rd" -C
 
+# Insertar datos de prueba (3 usuarios, 5 expedientes, 8 indicios)
+Get-Content .\src\scripts\seed.sql | docker exec -i sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "YourStrong!Passw0rd" -C
 
-# Crear stored procedures### 4. Levantar SQL Server con Docker
-
+# Crear stored procedures (usuarios, expedientes, indicios)
 Get-ChildItem -Path .\src\db\sp\usuarios\*.sql | ForEach-Object { 
-
-  Get-Content $_.FullName | docker exec -i sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "YourStrong!Passw0rd" -C -d expedientes_db ```bashCrear archivo `.env` en la raiz del proyecto:
-
+  Get-Content $_.FullName | docker exec -i sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "YourStrong!Passw0rd" -C -d expedientes_db 
 }
-
-docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=YourStrong!Passw0rd" \
 
 Get-ChildItem -Path .\src\db\sp\expedientes\*.sql | ForEach-Object { 
-
-  Get-Content $_.FullName | docker exec -i sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "YourStrong!Passw0rd" -C -d expedientes_db   -p 1433:1433 --name sqlserver -d mcr.microsoft.com/mssql/server:2022-latest```env
-
+  Get-Content $_.FullName | docker exec -i sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "YourStrong!Passw0rd" -C -d expedientes_db 
 }
-
-```PORT=3000
 
 Get-ChildItem -Path .\src\db\sp\indicios\*.sql | ForEach-Object { 
-
-  Get-Content $_.FullName | docker exec -i sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "YourStrong!Passw0rd" -C -d expedientes_db JWT_SECRET=tu_secreto_super_seguro
-
+  Get-Content $_.FullName | docker exec -i sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "YourStrong!Passw0rd" -C -d expedientes_db 
 }
+```
 
-```### 5. Inicializar base de datos (PowerShell)JWT_EXPIRES=1h
-
-
-
-**Opción 2 - SSMS o DBeaver (Manual):**```powershellDB_SERVER=localhost
+**Opción 2 - SSMS o DBeaver (Manual):**
 
 1. Conectarse a SQL Server (localhost:1433, usuario: sa)
-
-2. Ejecutar `src/scripts/schema.sql` (crea base de datos y tablas con campos de auditoría)# Crear estructuraDB_USER=sa
-
-3. Ejecutar `src/scripts/seed.sql` (inserta 3 usuarios, 5 expedientes, 8 indicios)
-
-4. Ejecutar todos los stored procedures en orden:Get-Content .\src\scripts\schema.sql | docker exec -i sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "YourStrong!Passw0rd" -CDB_PASS=YourStrong!Passw0rd
-
-   - `src/db/sp/usuarios/*.sql`
-
-   - `src/db/sp/expedientes/*.sql`DB_NAME=expedientes_db
-
-   - `src/db/sp/indicios/*.sql`
-
-# Insertar datosBCRYPT_SALT_ROUNDS=10
+2. Ejecutar `src/scripts/schema.sql`
+3. Ejecutar `src/scripts/seed.sql`
+4. Ejecutar todos los stored procedures en `src/db/sp/`
 
 ### 6️⃣ Ejecutar la API
-
-Get-Content .\src\scripts\seed.sql | docker exec -i sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "YourStrong!Passw0rd" -C```
 
 **Desarrollo:**
 
 ```bash
-
 npm run dev
+```
 
-```# Crear stored procedures### 4 - Levantar SQL Server con Docker
-
-
-
-**Producción:**Get-ChildItem -Path .\src\db\sp\**\*.sql | ForEach-Object { 
+**Producción:**
 
 ```bash
-
-npm run build  Get-Content $_.FullName | docker exec -i sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "YourStrong!Passw0rd" -C -d expedientes_db ```bash
-
+npm run build
 npm start
+```
 
-```}docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=YourStrong!Passw0rd" \
+El servidor estará disponible en: **http://localhost:3000**
 
-
-
-El servidor estará disponible en: **http://localhost:3000**```  -p 1433:1433 --name sqlserver -d mcr.microsoft.com/mssql/server:2022-latest
-
-
-
-**Verificar que todo funciona:**```
-
+**Verificar que todo funciona:**
 1. Abre http://localhost:3000/docs (debería mostrar Swagger UI)
-
-2. Prueba el endpoint de salud: http://localhost:3000/api/health### 6. Ejecutar servidor
-
+2. Prueba el endpoint de salud: http://localhost:3000/api/health
 3. Haz login con las credenciales de prueba (ver sección de Pruebas)
 
-```bash### 5 - Inicializar base de datos
-
 ---
-
-npm run dev
 
 ## 📖 Endpoints principales
 
-```**PowerShell:**
-
 ### 🔐 Auth
+- `POST /api/auth/login` → Iniciar sesión y obtener JWT
 
-- `POST {BASE_PATH}/auth/login` → Iniciar sesión y obtener JWT```powershell
+### 👥 Usuarios
+- `POST /api/usuarios` → Crear usuario (solo coordinador)
+- `PATCH /api/usuarios/:id/password` → Cambiar contraseña
+- `GET /api/usuarios` → Listar usuarios con paginación (solo coordinador)
 
+### 📂 Expedientes
+- `GET /api/expedientes?page=1&pageSize=10&estado=abierto&fechaInicio=2025-01-01&fechaFin=2025-12-31&tecnicoId=1` → Listar con filtros avanzados
+- `GET /api/expedientes/:id` → Obtener detalle de un expediente
+- `POST /api/expedientes` → Crear expediente (solo técnico)
+- `PUT /api/expedientes/:id` → Actualizar expediente (solo técnico dueño)
+- `PATCH /api/expedientes/:id/estado` → Cambiar estado: aprobado/rechazado (solo coordinador, requiere `justificacion` si rechazado)
+- `PATCH /api/expedientes/:id/activo` → Soft delete (técnico dueño o coordinador)
+- `GET /api/expedientes/export?estado=abierto&tecnicoId=1` → Exportar a Excel con filtros
 
+### 🔍 Indicios
+- `GET /api/expedientes/:id/indicios?page=1&pageSize=10` → Listar indicios de un expediente con paginación
+- `POST /api/expedientes/:id/indicios` → Crear indicio (solo técnico dueño del expediente)
+- `PUT /api/indicios/:id` → Actualizar indicio (solo técnico dueño)
+- `PATCH /api/indicios/:id/activo` → Soft delete (técnico dueño)
 
-### 👥 UsuariosServidor disponible en: http://localhost:3000# Crear base de datos y tablas
-
-- `POST {BASE_PATH}/usuarios` → Crear usuario (solo coordinador)
-
-- `PATCH {BASE_PATH}/usuarios/:id/password` → Cambiar contraseñaGet-Content .\src\scripts\schema.sql | docker exec -i sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "YourStrong!Passw0rd" -C
-
-- `GET {BASE_PATH}/usuarios?page=1&pageSize=10` → Listar usuarios (solo coordinador)
+**Documentación completa con ejemplos:** http://localhost:3000/docs
 
 ---
 
-### 📂 Expedientes
-
-- `GET {BASE_PATH}/expedientes?page=1&pageSize=10&estado=abierto&fechaInicio=2025-01-01&fechaFin=2025-12-31&tecnicoId=1` → Listar con filtros avanzados# Insertar datos de prueba
-
-- `GET {BASE_PATH}/expedientes/:id` → Obtener detalle
-
-- `POST {BASE_PATH}/expedientes` → Crear (solo técnico)## Endpoints principalesGet-Content .\src\scripts\seed.sql | docker exec -i sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "YourStrong!Passw0rd" -C
-
-- `PUT {BASE_PATH}/expedientes/:id` → Actualizar (solo técnico dueño)
-
-- `PATCH {BASE_PATH}/expedientes/:id/estado` → Aprobar/rechazar (solo coordinador, **justificación obligatoria para rechazado**)
-
-- `PATCH {BASE_PATH}/expedientes/:id/activo` → Soft delete
-
-- `GET {BASE_PATH}/expedientes/export?estado=aprobado` → Exportar a Excel con filtros### Autenticacion# Crear stored procedures
-
-
-
-### 🔎 Indicios- `POST /api/auth/login` - Login con username/passwordGet-ChildItem -Path .\src\db\sp\usuarios\*.sql | ForEach-Object { 
-
-- `GET {BASE_PATH}/expedientes/:id/indicios?page=1&pageSize=10` → Listar con paginación
-
-- `POST {BASE_PATH}/expedientes/:id/indicios` → Crear (solo técnico dueño del expediente)  Get-Content $_.FullName | docker exec -i sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "YourStrong!Passw0rd" -C -d expedientes_db 
-
-- `PUT {BASE_PATH}/indicios/:id` → Actualizar (solo técnico dueño)
-
-- `PATCH {BASE_PATH}/indicios/:id/activo` → Soft delete (solo técnico dueño)### Usuarios (coordinador)}
-
-
-
-### 🆕 Nuevas características- `POST /api/usuarios` - Crear usuario
-
-
-
-#### Paginación flexible (español/inglés):- `GET /api/usuarios` - Listar usuariosGet-ChildItem -Path .\src\db\sp\expedientes\*.sql | ForEach-Object { 
-
-Los endpoints de listado aceptan **ambos formatos** de parámetros:
-
-- `page` o `pagina` → Número de página (default: 1)- `PATCH /api/usuarios/:id/password` - Cambiar contrasena  Get-Content $_.FullName | docker exec -i sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "YourStrong!Passw0rd" -C -d expedientes_db 
-
-- `pageSize` o `tamanoPagina` → Tamaño de página (default: 10)
-
-}
-
-**Ejemplos:**
-
-```bash### Expedientes
-
-# Formato inglés
-
-GET /api/expedientes?page=2&pageSize=20- `GET /api/expedientes` - Listar con filtros (estado, tecnicoId, fechas, q)Get-ChildItem -Path .\src\db\sp\indicios\*.sql | ForEach-Object { 
-
-
-
-# Formato español (para frontend)- `POST /api/expedientes` - Crear (tecnico)  Get-Content $_.FullName | docker exec -i sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "YourStrong!Passw0rd" -C -d expedientes_db 
-
-GET /api/expedientes?pagina=2&tamanoPagina=20
-
-- `PUT /api/expedientes/:id` - Actualizar (tecnico dueno)}
-
-# Se pueden mezclar (se usa el primero encontrado)
-
-GET /api/expedientes?page=2&tamanoPagina=20- `PATCH /api/expedientes/:id/estado` - Aprobar/rechazar (coordinador)```
-
-```
-
-- `GET /api/expedientes/export` - Exportar a Excel
-
-**Respuesta consistente:**
-
-```json**Opción 2 - SSMS o DBeaver (Manual):**
-
-{
-
-  "page": 2,### Indicios1. Conectarse a SQL Server (localhost:1433, usuario: sa)
-
-  "pageSize": 20,
-
-  "total": 45,- `GET /api/expedientes/:id/indicios` - Listar con paginacion2. Ejecutar `src/scripts/schema.sql` (crea base de datos y tablas con campos de auditoría)
-
-  "data": [...]
-
-}- `POST /api/expedientes/:id/indicios` - Crear (tecnico dueno)3. Ejecutar `src/scripts/seed.sql` (inserta 3 usuarios, 5 expedientes, 8 indicios)
-
-```
-
-- `PUT /api/indicios/:id` - Actualizar (tecnico dueno)4. Ejecutar todos los stored procedures en orden:
-
-#### BASE_PATH configurable:
-
-El prefijo de todas las rutas se configura con la variable `BASE_PATH` en `.env` (default: `/api`).   - `src/db/sp/usuarios/*.sql`
-
-
-
-**Ejemplo de integración con frontend (Vite/React):**---   - `src/db/sp/expedientes/*.sql`
-
-```env
-
-# Frontend .env   - `src/db/sp/indicios/*.sql`
-
-VITE_API_BASE_URL=http://localhost:3000/api
-
-```## Pruebas
-
-
-
-#### Validación de entorno con Zod:### 6️⃣ Ejecutar la API
-
-Al iniciar el servidor, se validan **11 variables de entorno** con Zod. Si alguna falta o es inválida, el servidor no arranca y muestra el error específico.
+## 🧪 Pruebas
 
 ### Credenciales de prueba
 
-#### Manejo global de errores:
-
-- Los errores `UnauthorizedError` devuelven automáticamente 401- **Tecnico 1:** `tecnico1` / `tecnico123`**Desarrollo:**
-
-- Respeta `err.statusCode` si existe
-
-- En producción, oculta detalles técnicos del error- **Tecnico 2:** `tecnico2` / `tecnico123````bash
-
-- En desarrollo, muestra stack trace completo
-
-- **Coordinador:** `coord1` / `tecnico123`npm run dev
-
----
-
-```
-
-## 📑 Documentación
-
-### Swagger UI (recomendado)
-
-- **Swagger UI:** http://localhost:3000/docs
-
-- **Health check:** http://localhost:3000/api/health1. Abrir http://localhost:3000/docs**Producción:**
-
-- **Tests rápidos:** Ver `docs/tests-rapidos.md` para comandos curl completos
-
-- La ruta raíz `/` redirige automáticamente a `/docs`2. Click en `POST /api/auth/login````bash
-
-
-
----3. Probar con credenciales de arribanpm run build
-
-
-
-## 🧪 Credenciales de prueba4. Copiar el token de la respuestanpm start
-
-
-
-Los datos de seed incluyen:5. Click en "Authorize" y pegar: `Bearer <token>````
-
-
-
-**Usuarios:**6. Probar todos los endpoints
-
-- Técnico 1: `tecnico1` / `tecnico123`
-
-- Técnico 2: `tecnico2` / `tecnico123`El servidor estará disponible en: http://localhost:3000
-
-- Coordinador: `coord1` / `tecnico123`
-
-### PowerShell
-
-**Expedientes de prueba:** 5 expedientes
-
-- 3 abiertos (2 de tecnico1, 1 de tecnico2)```powershell**Verificar que todo funciona:**
-
-- 1 aprobado (tecnico2)
-
-- 1 rechazado con justificación (tecnico1)# Login1. Abre http://localhost:3000/docs (debería mostrar Swagger UI)
-
-
-
-**Indicios de prueba:** 8 indicios distribuidos entre expedientes$response = Invoke-RestMethod -Uri http://localhost:3000/api/auth/login `2. Prueba el endpoint de salud: http://localhost:3000/api/health
-
-
-
----  -Method POST -ContentType "application/json" `3. Haz login con las credenciales de prueba (ver sección de Pruebas)
-
-
-
-## 🧪 Cómo hacer pruebas  -Body '{"username":"tecnico1","password":"tecnico123"}'
-
-
-
-### Opción 1: Swagger UI (Recomendado)---
-
-1. Abre http://localhost:3000/docs en tu navegador
-
-2. Haz clic en **POST /api/auth/login**$token = $response.token## 📖 Endpoints principales
-
-3. Click en "Try it out"
-
-4. Pega las credenciales:
-
-   ```json
-
-   {# Listar expedientes### 🔐 Auth
-
-     "username": "tecnico1",
-
-     "password": "tecnico123"$headers = @{ Authorization = "Bearer $token" }- `POST /api/auth/login` → Iniciar sesión y obtener JWT
-
-   }
-
-   ```Invoke-RestMethod -Uri http://localhost:3000/api/expedientes -Headers $headers
-
-5. Click en "Execute"
-
-6. Copia el `token` de la respuesta```### � Usuarios
-
-7. Haz clic en el botón "Authorize" (arriba a la derecha) 🔒
-
-8. Pega el token en formato: `Bearer tu_token_aqui`- `POST /api/usuarios` → Crear usuario (solo coordinador)
-
-9. Ahora puedes probar todos los endpoints autenticados ✅
-
-### Curl- `PATCH /api/usuarios/:id/password` → Cambiar contraseña
-
-### Opción 2: PowerShell con Invoke-WebRequest
-
-```powershell```bash- `GET /api/usuarios` → Listar usuarios (solo coordinador)
-
+| Usuario    | Password     | Rol          |
+|------------|--------------|--------------|
+| tecnico1   | tecnico123   | tecnico      |
+| tecnico2   | tecnico123   | tecnico      |
+| coord1     | tecnico123   | coordinador  |
+
+### Opción 1: Swagger UI (Recomendado)
+
+1. Abrir http://localhost:3000/docs
+2. Click en `POST /api/auth/login`
+3. Probar con credenciales de arriba
+4. Copiar el `token` de la respuesta
+5. Click en **"Authorize"** (candado arriba a la derecha)
+6. Pegar: `Bearer <token>`
+7. Probar todos los endpoints protegidos
+
+### Opción 2: PowerShell
+
+```powershell
 # 1. Login y obtener token
-
-$loginResponse = Invoke-RestMethod -Uri http://localhost:3000/api/auth/login `# Login
-
+$loginResponse = Invoke-RestMethod -Uri http://localhost:3000/api/auth/login `
   -Method POST `
-
-  -ContentType "application/json" `TOKEN=$(curl -s -X POST http://localhost:3000/api/auth/login \### �📂 Expedientes
-
+  -ContentType "application/json" `
   -Body '{"username":"tecnico1","password":"tecnico123"}'
 
-  -H "Content-Type: application/json" \- `GET /api/expedientes?page=1&pageSize=10&estado=abierto&fechaInicio=2025-01-01&fechaFin=2025-12-31&tecnicoId=1` → Listar con filtros avanzados
-
 $token = $loginResponse.token
+Write-Host "Token obtenido: $token"
 
-Write-Host "Token obtenido: $token"  -d '{"username":"tecnico1","password":"tecnico123"}' | jq -r '.token')- `GET /api/expedientes/:id` → Obtener detalle
-
-
-
-# 2. Listar expedientes con filtros (formato español)- `POST /api/expedientes` → Crear (solo técnico)
-
+# 2. Listar expedientes con paginación
 $headers = @{ Authorization = "Bearer $token" }
-
-$expedientes = Invoke-RestMethod -Uri "http://localhost:3000/api/expedientes?pagina=1&tamanoPagina=10" `# Listar expedientes- `PUT /api/expedientes/:id` → Actualizar (solo técnico dueño)
-
+$expedientes = Invoke-RestMethod -Uri "http://localhost:3000/api/expedientes?page=1&pageSize=10" `
   -Method GET -Headers $headers
+$expedientes | ConvertTo-Json
 
-$expedientes | ConvertTo-Jsoncurl -X GET http://localhost:3000/api/expedientes \- `PATCH /api/expedientes/:id/estado` → Aprobar/rechazar (solo coordinador)
-
-
-
-# 3. Crear expediente  -H "Authorization: Bearer $TOKEN"- `PATCH /api/expedientes/:id/activo` → Soft delete
-
+# 3. Crear expediente
 $body = @{
-
-  codigo = "TEST-$(Get-Date -Format 'yyyyMMddHHmmss')"```- `GET /api/expedientes/export?estado=aprobado` → Exportar a Excel
-
+  codigo = "TEST-$(Get-Date -Format 'yyyyMMddHHmmss')"
   titulo = "Expediente de prueba"
-
   descripcion = "Creado desde PowerShell"
-
 } | ConvertTo-Json
 
-Mas ejemplos en `docs/tests-rapidos.md`### 🔎 Indicios
-
 $nuevoExp = Invoke-RestMethod -Uri http://localhost:3000/api/expedientes `
-
-  -Method POST -Headers $headers -ContentType "application/json" -Body $body- `GET /api/expedientes/:id/indicios?page=1&pageSize=10` → Listar con paginación
-
+  -Method POST -Headers $headers -ContentType "application/json" -Body $body
 $nuevoExp | ConvertTo-Json
 
----- `POST /api/expedientes/:id/indicios` → Crear (solo técnico dueño del expediente)
-
-# 4. Exportar a Excel (abre en navegador)
-
-Start-Process "http://localhost:3000/api/expedientes/export?estado=abierto"- `PUT /api/indicios/:id` → Actualizar (solo técnico dueño)
-
+# 4. Exportar a Excel (guarda el archivo)
+$excelUrl = "http://localhost:3000/api/expedientes/export?estado=abierto"
+Invoke-WebRequest -Uri $excelUrl -Headers $headers -OutFile "expedientes.xlsx"
+Write-Host "Archivo guardado: expedientes.xlsx"
 ```
-
-## Documentacion- `PATCH /api/indicios/:id/activo` → Soft delete (solo técnico dueño)
 
 ### Opción 3: curl (Bash/Git Bash)
 
 ```bash
-
 # 1. Login
-
-TOKEN=$(curl -s -X POST http://localhost:3000/api/auth/login \- **Swagger UI:** http://localhost:3000/docs### � Nuevas características
-
+TOKEN=$(curl -s -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
+  -d '{"username":"tecnico1","password":"tecnico123"}' | jq -r '.token')
 
-  -d '{"username":"tecnico1","password":"tecnico123"}' | jq -r '.token')- **Health check:** http://localhost:3000/api/health- **Filtros avanzados:** estado, fechaInicio, fechaFin, tecnicoId
+echo "Token: $TOKEN"
 
-
-
-echo "Token: $TOKEN"- **Tests completos:** docs/tests-rapidos.md- **Paginación:** Soporta `page`/`pagina` y `pageSize`
-
-
-
-# 2. Listar expedientes con filtros (formato español)- **Repositorio:** https://github.com/GuillermoGome2z/Api-Expedientes-- **Validación de ownership:** Técnicos solo pueden modificar sus propios expedientes/indicios
-
-curl -X GET "http://localhost:3000/api/expedientes?estado=abierto&pagina=1&tamanoPagina=10" \
-
-  -H "Authorization: Bearer $TOKEN"- **Auditoría:** Campos `fecha_creacion`, `fecha_actualizacion`, `modificado_por`
-
-
-
-# 3. Crear expediente---- **Exportación:** Excel con filtros aplicados
-
-curl -X POST http://localhost:3000/api/expedientes \
-
-  -H "Content-Type: application/json" \
-
-  -H "Authorization: Bearer $TOKEN" \
-
-  -d '{"codigo":"TEST-001","titulo":"Test","descripcion":"Expediente de prueba"}'## Datos de seed## �📑 Documentación
-
-
-
-# 4. Aprobar expediente (requiere rol coordinador)- **Swagger UI:** http://localhost:3000/docs
-
-TOKEN_COORD=$(curl -s -X POST http://localhost:3000/api/auth/login \
-
-  -H "Content-Type: application/json" \- **3 usuarios:** 2 tecnicos + 1 coordinador- **Health check:** http://localhost:3000/api/health
-
-  -d '{"username":"coord1","password":"tecnico123"}' | jq -r '.token')
-
-- **5 expedientes:** 3 abiertos, 1 aprobado, 1 rechazado- **Tests rápidos:** Ver `docs/tests-rapidos.md` para comandos curl completos
-
-curl -X PATCH http://localhost:3000/api/expedientes/1/estado \
-
-  -H "Content-Type: application/json" \- **8 indicios:** distribuidos entre expedientes- La ruta raíz `/` redirige automáticamente a `/docs`
-
-  -H "Authorization: Bearer $TOKEN_COORD" \
-
-  -d '{"estado":"aprobado","justificacion":"Cumple con los requisitos"}'
-
-
-
-# 5. Rechazar expediente (justificación OBLIGATORIA)---## 🧪 Credenciales de prueba
-
-curl -X PATCH http://localhost:3000/api/expedientes/2/estado \
-
-  -H "Content-Type: application/json" \
-
-  -H "Authorization: Bearer $TOKEN_COORD" \
-
-  -d '{"estado":"rechazado","justificacion":"Falta información del lugar del incidente"}'## AutorLos datos de seed incluyen:
-
-```
-
-
-
-### Opción 4: Postman / Insomnia
-
-1. Importa la URL de Swagger: `http://localhost:3000/docs`**Guillermo Gomez****Usuarios:**
-
-2. O crea las peticiones manualmente siguiendo la documentación
-
-3. Configura el header `Authorization: Bearer <token>` después del login- GitHub: [@GuillermoGome2z](https://github.com/GuillermoGome2z)- Técnico 1: `tecnico1` / `tecnico123`
-
-
-
-### Tests completos- Universidad Mariano Galvez - Desarrollo Web (2025)- Técnico 2: `tecnico2` / `tecnico123`
-
-Ver `docs/tests-rapidos.md` para más de 30 ejemplos de pruebas con casos de éxito y error, validación de ownership, paginación, filtros y exportación.
-
-- Coordinador: `coord1` / `tecnico123`
-
----
-
----
-
-## 🎨 Frontend
-
-**Expedientes de prueba:** 5 expedientes
-
-El frontend se encuentra en un repositorio separado para mantener una arquitectura desacoplada:
-
-## Licencia- 3 abiertos (2 de tecnico1, 1 de tecnico2)
-
-**Repositorio Frontend:** _(Pendiente de publicar)_
-
-- 1 aprobado (tecnico2)
-
-**Conexión:** El frontend se conectará a esta API mediante las rutas `/api/*` documentadas en Swagger.
-
-ISC- 1 rechazado con justificación (tecnico1)
-
-**CORS configurado para:**
-
-- `http://localhost:5173` (Vite/React dev)
-
-- `http://localhost:3001` **Indicios de prueba:** 8 indicios distribuidos entre expedientes
-
-- `http://localhost:3000`
-
----
-
-**Configuración recomendada en el frontend:**
-
-```env## 🧪 Cómo hacer pruebas
-
-# .env del frontend
-
-VITE_API_BASE_URL=http://localhost:3000/api### Opción 1: Swagger UI (Recomendado)
-
-```1. Abre http://localhost:3000/docs en tu navegador
-
-2. Haz clic en **POST /api/auth/login**
-
-```typescript3. Click en "Try it out"
-
-// Frontend: api/client.ts4. Pega las credenciales:
-
-const api = axios.create({   ```json
-
-  baseURL: import.meta.env.VITE_API_BASE_URL, // http://localhost:3000/api   {
-
-});     "username": "tecnico1",
-
-```     "password": "tecnico123"
-
-   }
-
----   ```
-
-5. Click en "Execute"
-
-## 📝 Changelog de refactorización reciente6. Copia el `token` de la respuesta
-
-7. Haz clic en el botón "Authorize" (arriba a la derecha)
-
-### ✅ Mejoras implementadas:8. Pega el token: `Bearer tu_token_aqui`
-
-9. Ahora puedes probar todos los endpoints autenticados
-
-1. **Middleware de errores global** (`src/middlewares/error.middleware.ts`)
-
-   - Manejo automático de `UnauthorizedError` → 401### Opción 2: PowerShell con Invoke-WebRequest
-
-   - Respeta `err.statusCode` si existe```powershell
-
-   - Oculta detalles en producción# 1. Login y obtener token
-
-$loginResponse = Invoke-RestMethod -Uri http://localhost:3000/api/auth/login `
-
-2. **Validación de variables de entorno con Zod** (`src/config/env.ts`)  -Method POST `
-
-   - Valida 11 variables al iniciar  -ContentType "application/json" `
-
-   - `JWT_SECRET` requiere mínimo 32 caracteres  -Body '{"username":"tecnico1","password":"tecnico123"}'
-
-   - Fail-fast con mensajes descriptivos
-
-$token = $loginResponse.token
-
-3. **Tipado TypeScript global** (`src/types/express.d.ts`)Write-Host "Token obtenido: $token"
-
-   - `req.user` tipado globalmente en todos los middlewares
-
-   - No se requiere `AuthRequest` personalizado# 2. Listar expedientes
-
-$headers = @{ Authorization = "Bearer $token" }
-
-4. **Paginación flexible español/inglés**$expedientes = Invoke-RestMethod -Uri http://localhost:3000/api/expedientes `
-
-   - Soporta `page`/`pagina` y `pageSize`/`tamanoPagina`  -Method GET -Headers $headers
-
-   - Respuesta consistente: `{ page, pageSize, total, data }`$expedientes | ConvertTo-Json
-
-
-
-5. **BASE_PATH configurable**# 3. Crear expediente
-
-   - Variable de entorno `BASE_PATH` (default: `/api`)$body = @{
-
-   - Usado en app.ts y swagger.ts  codigo = "TEST-$(Get-Date -Format 'yyyyMMddHHmmss')"
-
-  titulo = "Expediente de prueba"
-
-6. **RBAC reforzado**  descripcion = "Creado desde PowerShell"
-
-   - Verificación explícita de ownership en expedientes} | ConvertTo-Json
-
-   - Justificación **obligatoria** al rechazar expedientes
-
-   - Coordinadores no pueden modificar expedientes ajenos$nuevoExp = Invoke-RestMethod -Uri http://localhost:3000/api/expedientes `
-
-  -Method POST -Headers $headers -ContentType "application/json" -Body $body
-
-7. **Swagger actualizado**$nuevoExp | ConvertTo-Json
-
-   - Todas las rutas protegidas marcadas con `bearerAuth`
-
-   - Servidor dinámico con `BASE_PATH`# 4. Exportar a Excel (abre en navegador)
-
-   - Documentación de paginación con aliasStart-Process "http://localhost:3000/api/expedientes/export?estado=abierto"
-
-```
-
----
-
-### Opción 3: curl (Bash/Git Bash)
-
-## 👨‍💻 Autor```bash
-
-# 1. Login
-
-**Guillermo Gómez**TOKEN=$(curl -s -X POST http://localhost:3000/api/auth/login \
-
-- GitHub: [@GuillermoGome2z](https://github.com/GuillermoGome2z)  -H "Content-Type: application/json" \
-
-- Universidad Mariano Gálvez - Desarrollo Web (2025)  -d '{"username":"tecnico1","password":"tecnico123"}' | jq -r '.token')
-
-
-
----echo "Token: $TOKEN"
-
-
-
-## 📄 Licencia# 2. Listar expedientes con filtros
-
-curl -X GET "http://localhost:3000/api/expedientes?estado=abierto&page=1&pageSize=10" \
-
-ISC  -H "Authorization: Bearer $TOKEN"
-
+# 2. Listar expedientes con filtros y paginación (aliases en español también funcionan)
+curl -X GET "http://localhost:3000/api/expedientes?pagina=1&tamanoPagina=10&estado=abierto" \
+  -H "Authorization: Bearer $TOKEN"
 
 # 3. Crear expediente
 curl -X POST http://localhost:3000/api/expedientes \
@@ -894,34 +277,129 @@ curl -X POST http://localhost:3000/api/expedientes \
   -d '{"codigo":"TEST-001","titulo":"Test","descripcion":"Expediente de prueba"}'
 
 # 4. Aprobar expediente (requiere rol coordinador)
+TOKEN_COORD=$(curl -s -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"coord1","password":"tecnico123"}' | jq -r '.token')
+
 curl -X PATCH http://localhost:3000/api/expedientes/1/estado \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN_COORDINADOR" \
-  -d '{"nuevoEstado":"aprobado"}'
+  -H "Authorization: Bearer $TOKEN_COORD" \
+  -d '{"estado":"aprobado"}'
+
+# 5. Rechazar con justificación (obligatorio)
+curl -X PATCH http://localhost:3000/api/expedientes/2/estado \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN_COORD" \
+  -d '{"estado":"rechazado","justificacion":"Falta documentación completa"}'
 ```
-
-### Opción 4: Postman / Insomnia
-1. Importa la URL de Swagger: `http://localhost:3000/docs`
-2. O crea las peticiones manualmente siguiendo la documentación
-3. Configura el header `Authorization: Bearer <token>` después del login
-
-### Tests completos
-Ver `docs/tests-rapidos.md` para más de 30 ejemplos de pruebas con casos de éxito y error, validación de ownership, paginación, filtros y exportación.
 
 ---
 
-## 🎨 Frontend
+## 🎨 Frontend Integration
 
-El frontend se encuentra en un repositorio separado para mantener una arquitectura desacoplada:
+Esta API está diseñada para trabajar con el frontend incluido en la carpeta `frontend/` (React + TypeScript + Vite).
 
-**Repositorio Frontend:** _(Pendiente de publicar)_
+### Configuración del Frontend
 
-**Conexión:** El frontend se conectará a esta API mediante las rutas `/api/*` documentadas en Swagger.
+El frontend usa la variable de entorno `VITE_API_BASE_URL` para conectarse a la API. Esta debe configurarse según el `BASE_PATH` del backend:
 
-**CORS configurado para:**
-- `http://localhost:5173` (Vite/React dev)
-- `http://localhost:3001` 
+**Ejemplo `.env` en `frontend/`:**
+```env
+VITE_API_BASE_URL=http://localhost:3000/api
+```
+
+Si cambias `BASE_PATH` en el backend (por ejemplo a `/v1` o `/api/v2`), actualiza también el frontend:
+
+```env
+# Backend .env
+BASE_PATH=/api/v2
+
+# Frontend .env
+VITE_API_BASE_URL=http://localhost:3000/api/v2
+```
+
+### CORS
+
+El backend acepta peticiones desde los siguientes orígenes por defecto:
+- `http://localhost:5173` (Vite dev server)
+- `http://localhost:3001`
 - `http://localhost:3000`
+
+Para configurar orígenes personalizados, usa la variable `CORS_ORIGIN` en el `.env` del backend:
+
+```env
+CORS_ORIGIN=http://localhost:5173,https://mi-dominio.com
+```
+
+### Paginación: Aliases en español
+
+La API soporta aliases en español para los parámetros de paginación:
+
+| Inglés       | Español (alias) | Ejemplo                                |
+|--------------|-----------------|----------------------------------------|
+| `page`       | `pagina`        | `?page=2` o `?pagina=2`                |
+| `pageSize`   | `tamanoPagina`  | `?pageSize=20` o `?tamanoPagina=20`    |
+
+Esto permite que el frontend use términos en español sin necesidad de traducción adicional.
+
+**Ejemplo de uso:**
+```javascript
+// Ambas formas funcionan
+fetch(`${API_BASE_URL}/expedientes?page=1&pageSize=10`)
+fetch(`${API_BASE_URL}/expedientes?pagina=1&tamanoPagina=10`)
+```
+
+---
+
+## 🔧 Scripts disponibles
+
+```bash
+npm run dev          # Desarrollo con hot-reload (ts-node-dev)
+npm run build        # Compilar a JavaScript (dist/)
+npm start            # Ejecutar compilado (producción)
+npm run hash:seed    # Generar hashes bcrypt para seed.sql
+```
+
+---
+
+## 📝 Notas técnicas
+
+### Validación de variables de entorno
+
+El archivo `src/config/env.ts` usa **Zod** para validar todas las variables de entorno al inicio:
+
+- `NODE_ENV`: "development" | "production" | "test"
+- `PORT`: número (convertido automáticamente desde string)
+- `JWT_SECRET`: mínimo 32 caracteres (validado en producción)
+- `DB_*`: todas las credenciales requeridas
+- `BASE_PATH`: default "/api"
+- `CORS_ORIGIN`: opcional
+
+Si falta alguna variable o no cumple los requisitos, la app **no arranca** y muestra un mensaje claro del error.
+
+### Middleware de errores
+
+El archivo `src/middlewares/error.middleware.ts` captura todos los errores y devuelve respuestas apropiadas:
+
+- **Desarrollo:** stack trace completo para debugging
+- **Producción:** mensajes genéricos para no exponer detalles internos
+- Maneja errores de JWT, validación, y excepciones no controladas
+
+### Tipado extendido de Express
+
+El archivo `src/types/express.d.ts` extiende la interfaz `Request` de Express para incluir:
+
+```typescript
+interface Request {
+  user?: {
+    id: number;
+    username: string;
+    rol: "tecnico" | "coordinador";
+  };
+}
+```
+
+Esto proporciona **autocompletado** y **type-safety** en todos los controladores sin necesidad de castings.
 
 ---
 
