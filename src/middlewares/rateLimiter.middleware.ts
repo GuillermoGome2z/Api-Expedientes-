@@ -2,11 +2,12 @@ import rateLimit from "express-rate-limit";
 
 /**
  * Rate limiter para login: previene brute-force
- * 5 intentos cada 15 minutos por IP
+ * 100 intentos cada 15 minutos por IP (desarrollo)
+ * En producción cambiar a: max: 5
  */
 export const loginRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 5, // máximo 5 peticiones
+  max: 100, // máximo 100 peticiones (desarrollo)
   message: {
     success: false,
     error:
